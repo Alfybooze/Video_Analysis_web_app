@@ -1,0 +1,1683 @@
+2025-09-19 12:36:43,162 [INFO] Starting FastAPI server...
+2025-09-19 12:50:23,157 [INFO] Serving homepage
+2025-09-19 12:50:52,487 [INFO] Received video summarization request for https://youtu.be/RgKAFK5djSk?si=IzsejYt-nXfbzI43
+2025-09-19 12:50:52,488 [INFO] Extracting direct video URL for: https://youtu.be/RgKAFK5djSk?si=IzsejYt-nXfbzI43
+2025-09-19 12:51:07,875 [INFO] Extracted direct URL: https://rr2---sn-aigl6nze.googlevideo.com/videoplayback?expire=1758304260&ei=pEPNaI_aBIv5xN8P99-j8Aw...
+2025-09-19 12:51:07,878 [INFO] Extracting audio with ffmpeg...
+2025-09-19 12:52:15,703 [INFO] Sending audio to OpenAI Whisper API...
+2025-09-19 12:53:42,086 [ERROR] Whisper API error: {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}
+2025-09-19 12:53:42,088 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 128, in summarize_video
+    raise HTTPException(status_code=400, detail="Whisper API error")
+fastapi.exceptions.HTTPException: 400: Whisper API error
+2025-09-19 13:40:21,070 [INFO] Starting FastAPI server...
+2025-09-19 13:40:37,370 [INFO] Serving homepage
+2025-09-19 13:40:47,454 [INFO] Received video summarization request for https://youtu.be/RgKAFK5djSk?si=IzsejYt-nXfbzI43
+2025-09-19 13:40:47,455 [INFO] Extracting direct video URL for: https://youtu.be/RgKAFK5djSk?si=IzsejYt-nXfbzI43
+2025-09-19 13:40:55,780 [INFO] Extracted direct URL: https://rr2---sn-aigl6nze.googlevideo.com/videoplayback?expire=1758307253&ei=VU_NaN0b16m90g-U2LTgCQ&...
+2025-09-19 13:40:55,782 [INFO] Extracting audio with ffmpeg...
+2025-09-19 13:41:04,824 [INFO] Transcribing audio locally with Whisper...
+2025-09-19 13:42:45,211 [INFO] Transcript generated locally
+2025-09-19 13:42:45,212 [INFO] Extracting frames every 15s...
+2025-09-19 13:42:53,093 [INFO] Extracted 10 frames
+2025-09-19 13:42:53,094 [INFO] Generating caption for frame_0001.jpg...
+2025-09-19 13:43:37,264 [INFO] Generating caption for frame_0002.jpg...
+2025-09-19 13:44:21,017 [INFO] Generating caption for frame_0003.jpg...
+2025-09-19 13:44:23,017 [INFO] Generating caption for frame_0004.jpg...
+2025-09-19 13:44:24,707 [INFO] Generating caption for frame_0005.jpg...
+2025-09-19 13:44:25,789 [INFO] Generating caption for frame_0006.jpg...
+2025-09-19 13:44:27,685 [INFO] Generating caption for frame_0007.jpg...
+2025-09-19 13:44:29,534 [INFO] Generating caption for frame_0008.jpg...
+2025-09-19 13:44:30,616 [INFO] Generating caption for frame_0009.jpg...
+2025-09-19 13:44:31,774 [INFO] Generating caption for frame_0010.jpg...
+2025-09-19 13:45:15,014 [INFO] Requesting final summary from OpenAI...
+2025-09-19 13:45:58,677 [ERROR] Summary generation failed: {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/gu
+2025-09-19 13:45:58,677 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 178, in summarize_video
+    raise HTTPException(status_code=500, detail="Failed to generate summary")
+fastapi.exceptions.HTTPException: 500: Failed to generate summary
+2025-09-22 04:15:16,651 [INFO] Starting FastAPI server...
+2025-09-22 04:17:02,532 [INFO] Serving homepage
+2025-09-22 04:17:39,782 [INFO] Received video summarization request for https://www.bing.com/videos/riverview/relatedvideo?q=video&&mid=1001DCC534AE1CEC0A9C1001DCC534AE1CEC0A9C&FORM=VCGVRP
+2025-09-22 04:17:39,784 [INFO] Extracting direct video URL for: https://www.bing.com/videos/riverview/relatedvideo?q=video&&mid=1001DCC534AE1CEC0A9C1001DCC534AE1CEC0A9C&FORM=VCGVRP
+2025-09-22 04:18:13,309 [ERROR] yt-dlp timeout
+2025-09-22 04:18:13,310 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 59, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://www.bing.com/videos/riverview/relatedvideo?q=video&&mid=1001DCC534AE1CEC0A9C1001DCC534AE1CEC0A9C&FORM=VCGVRP']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 93, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 74, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-22 04:18:49,804 [INFO] Received video summarization request for https://www.bing.com/videos/riverview/relatedvideo?q=video&&mid=1001DCC534AE1CEC0A9C1001DCC534AE1CEC0A9C&FORM=VCGVRP
+2025-09-22 04:18:50,089 [INFO] Extracting direct video URL for: https://www.bing.com/videos/riverview/relatedvideo?q=video&&mid=1001DCC534AE1CEC0A9C1001DCC534AE1CEC0A9C&FORM=VCGVRP
+2025-09-22 04:19:20,920 [ERROR] yt-dlp timeout
+2025-09-22 04:19:20,920 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 59, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://www.bing.com/videos/riverview/relatedvideo?q=video&&mid=1001DCC534AE1CEC0A9C1001DCC534AE1CEC0A9C&FORM=VCGVRP']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 93, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 74, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-22 04:20:33,501 [INFO] Received video summarization request for https://youtu.be/7yp4RNp5dm8?si=lGolQ6sBtJKe7MTD
+2025-09-22 04:20:33,502 [INFO] Extracting direct video URL for: https://youtu.be/7yp4RNp5dm8?si=lGolQ6sBtJKe7MTD
+2025-09-22 04:20:50,122 [INFO] Extracted direct URL: https://rr5---sn-huoob-avnz.googlevideo.com/videoplayback?expire=1758532840&ei=iMDQaNqeIKjwi9oPkY-qs...
+2025-09-22 04:20:50,125 [INFO] Extracting audio with ffmpeg...
+2025-09-22 04:21:24,421 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 04:23:51,895 [INFO] Transcript generated locally
+2025-09-22 04:23:51,896 [INFO] Extracting frames every 15s...
+2025-09-22 04:24:03,629 [INFO] Extracted 10 frames
+2025-09-22 04:24:03,630 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 04:24:05,794 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 04:24:06,982 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 04:24:08,686 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 04:24:10,565 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 04:24:12,647 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 04:24:14,597 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 04:24:15,987 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 04:24:17,437 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 04:24:18,859 [INFO] Generating caption for frame_0010.jpg...
+2025-09-22 04:24:20,807 [INFO] Requesting final summary from OpenAI...
+2025-09-22 04:24:22,082 [ERROR] Summary generation failed: {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/gu
+2025-09-22 04:24:22,082 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 178, in summarize_video
+    raise HTTPException(status_code=500, detail="Failed to generate summary")
+fastapi.exceptions.HTTPException: 500: Failed to generate summary
+2025-09-22 11:37:38,769 [INFO] Starting FastAPI server...
+2025-09-22 11:37:53,754 [INFO] Serving homepage
+2025-09-22 11:37:56,399 [INFO] Serving homepage
+2025-09-22 11:39:27,135 [INFO] Received video summarization request for https://youtu.be/7yp4RNp5dm8?si=lGolQ6sBtJKe7MTD
+2025-09-22 11:39:27,136 [INFO] Extracting direct video URL for: https://youtu.be/7yp4RNp5dm8?si=lGolQ6sBtJKe7MTD
+2025-09-22 11:39:39,451 [INFO] Extracted direct URL: https://rr1---sn-aigl6nsr.googlevideo.com/videoplayback?expire=1758559173&ei=ZSfRaJmJNI_ZxN8P7e3wgAM...
+2025-09-22 11:39:39,457 [INFO] Extracting audio with ffmpeg...
+2025-09-22 11:40:39,354 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 11:43:20,663 [INFO] Transcript generated locally
+2025-09-22 11:43:20,663 [INFO] Extracting frames every 15s...
+2025-09-22 11:43:48,571 [INFO] Extracted 10 frames
+2025-09-22 11:43:48,571 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 11:44:32,252 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 11:45:17,642 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 11:46:04,292 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 11:46:48,367 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 11:46:51,269 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 11:46:52,670 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 11:46:54,685 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 11:46:57,674 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 11:47:00,316 [INFO] Generating caption for frame_0010.jpg...
+2025-09-22 11:47:45,398 [INFO] Requesting final summary from OpenAI...
+2025-09-22 11:48:29,221 [ERROR] Summary generation failed: {
+    "error": {
+        "message": "Incorrect API key provided: sk-ITAif***********************************************************************************fhsA. You can find your API key at https://p
+2025-09-22 11:48:29,223 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 178, in summarize_video
+    raise HTTPException(status_code=500, detail="Failed to generate summary")
+fastapi.exceptions.HTTPException: 500: Failed to generate summary
+2025-09-22 12:26:07,888 [INFO] Starting FastAPI server...
+2025-09-22 12:26:45,516 [INFO] Serving homepage
+2025-09-22 12:26:57,665 [INFO] Received video summarization request for https://youtu.be/7yp4RNp5dm8?si=lGolQ6sBtJKe7MTD
+2025-09-22 12:26:57,665 [INFO] Extracting direct video URL for: https://youtu.be/7yp4RNp5dm8?si=lGolQ6sBtJKe7MTD
+2025-09-22 12:27:11,426 [INFO] Extracted direct URL: https://rr1---sn-aigl6nsr.googlevideo.com/videoplayback?expire=1758562024&ei=iDLRaL7HCZKNzPsPqfuY2Ao...
+2025-09-22 12:27:11,428 [INFO] Extracting audio with ffmpeg...
+2025-09-22 12:29:09,781 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 12:30:05,445 [INFO] Transcript generated locally
+2025-09-22 12:30:05,446 [INFO] Extracting frames every 15s...
+2025-09-22 12:30:58,681 [INFO] Extracted 10 frames
+2025-09-22 12:30:58,681 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 12:31:00,321 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 12:31:01,530 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 12:31:02,740 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 12:31:04,388 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 12:31:05,838 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 12:31:07,279 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 12:31:08,568 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 12:31:09,767 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 12:31:53,157 [INFO] Generating caption for frame_0010.jpg...
+2025-09-22 12:32:36,423 [INFO] Requesting final summary from OpenAI...
+2025-09-22 12:32:37,774 [ERROR] Summary generation failed: {
+    "error": {
+        "message": "Incorrect API key provided: sk-ITAif***********************************************************************************fhsA. You can find your API key at https://p
+2025-09-22 12:32:37,775 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 178, in summarize_video
+    raise HTTPException(status_code=500, detail="Failed to generate summary")
+fastapi.exceptions.HTTPException: 500: Failed to generate summary
+2025-09-22 13:49:57,448 [INFO] Starting FastAPI server...
+2025-09-22 13:55:12,916 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 13:55:12,917 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 13:55:40,653 [INFO] Extracted direct URL: https://rr1---sn-huoob-avnd.googlevideo.com/videoplayback?expire=1758567336&ei=SEfRaKPjDa-3mLAP_Jf-u...
+2025-09-22 13:55:40,655 [INFO] Extracting audio with ffmpeg...
+2025-09-22 13:56:35,250 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 13:58:30,224 [INFO] Transcript generated locally
+2025-09-22 13:58:30,225 [INFO] Extracting frames every 15s...
+2025-09-22 14:00:28,062 [INFO] Extracted 10 frames
+2025-09-22 14:00:28,062 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 14:00:31,607 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 14:00:35,009 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 14:00:38,450 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 14:00:40,537 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 14:00:41,579 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 14:00:42,684 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 14:00:43,930 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 14:00:45,240 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 14:00:46,724 [INFO] Generating caption for frame_0010.jpg...
+2025-09-22 14:00:48,141 [INFO] Requesting final summary from OpenAI...
+2025-09-22 14:00:49,579 [ERROR] Summary generation failed: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-IZDSppi3tclDKj8AYq2YKoRX on requests per min (RPM): Limit 3, Used 3, Requested 1. Please try again in 20s. V
+2025-09-22 14:00:49,579 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 178, in summarize_video
+    raise HTTPException(status_code=500, detail="Failed to generate summary")
+fastapi.exceptions.HTTPException: 500: Failed to generate summary
+2025-09-22 14:03:09,250 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:03:09,251 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:03:39,314 [ERROR] yt-dlp timeout
+2025-09-22 14:03:39,314 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 59, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 93, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 74, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-22 14:03:54,479 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:03:54,479 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:04:03,611 [INFO] Extracted direct URL: https://rr1---sn-huoob-avnd.googlevideo.com/videoplayback?expire=1758567839&ei=P0nRaLOCGsv-i9oPt5OC8...
+2025-09-22 14:04:03,612 [INFO] Extracting audio with ffmpeg...
+2025-09-22 14:06:07,311 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 14:07:56,825 [INFO] Transcript generated locally
+2025-09-22 14:07:56,825 [INFO] Extracting frames every 15s...
+2025-09-22 14:08:50,283 [INFO] Extracted 10 frames
+2025-09-22 14:08:50,283 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 14:08:53,926 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 14:08:57,099 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 14:09:00,825 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 14:09:02,121 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 14:09:03,212 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 14:09:04,465 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 14:09:05,768 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 14:09:07,043 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 14:09:08,274 [INFO] Generating caption for frame_0010.jpg...
+2025-09-22 14:09:09,526 [INFO] Requesting final summary from OpenAI...
+2025-09-22 14:09:10,506 [ERROR] Summary generation failed: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-IZDSppi3tclDKj8AYq2YKoRX on requests per min (RPM): Limit 3, Used 3, Requested 1. Please try again in 20s. V
+2025-09-22 14:09:10,506 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 178, in summarize_video
+    raise HTTPException(status_code=500, detail="Failed to generate summary")
+fastapi.exceptions.HTTPException: 500: Failed to generate summary
+2025-09-22 14:19:41,193 [INFO] Starting FastAPI server...
+2025-09-22 14:20:35,365 [INFO] Serving homepage
+2025-09-22 14:20:39,365 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:20:39,365 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:21:09,745 [ERROR] yt-dlp timeout
+2025-09-22 14:21:09,746 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 59, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 93, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 74, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-22 14:21:09,761 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:21:09,761 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:21:39,822 [ERROR] yt-dlp timeout
+2025-09-22 14:21:39,823 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 59, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 93, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 74, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-22 14:21:40,136 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:21:40,137 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:22:10,184 [ERROR] yt-dlp timeout
+2025-09-22 14:22:10,184 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 59, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 93, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 74, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-22 14:23:05,676 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:23:05,676 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:23:35,740 [ERROR] yt-dlp timeout
+2025-09-22 14:23:35,741 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 59, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 93, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 74, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-22 14:24:26,312 [INFO] Starting FastAPI server...
+2025-09-22 14:24:32,617 [INFO] Serving homepage
+2025-09-22 14:24:37,477 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:24:37,478 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:24:47,577 [INFO] Extracted direct URL: https://rr1---sn-huoob-avnd.googlevideo.com/videoplayback?expire=1758569082&ei=Gk7RaJn-DY7py_sPxryeu...
+2025-09-22 14:24:47,579 [INFO] Extracting audio with ffmpeg...
+2025-09-22 14:27:08,589 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 14:29:01,721 [INFO] Transcript generated locally
+2025-09-22 14:29:01,721 [INFO] Extracting frames every 15s...
+2025-09-22 14:32:04,939 [INFO] Extracted 10 frames
+2025-09-22 14:32:04,939 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 14:32:08,283 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 14:32:09,543 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 14:32:10,751 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 14:32:11,944 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 14:32:13,066 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 14:32:14,151 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 14:32:15,387 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 14:32:16,566 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 14:32:17,742 [INFO] Generating caption for frame_0010.jpg...
+2025-09-22 14:32:19,034 [INFO] Requesting final summary from OpenAI...
+2025-09-22 14:32:20,279 [ERROR] Summary generation failed: {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/gu
+2025-09-22 14:32:20,280 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 178, in summarize_video
+    raise HTTPException(status_code=500, detail="Failed to generate summary")
+fastapi.exceptions.HTTPException: 500: Failed to generate summary
+2025-09-22 14:34:31,869 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:34:31,870 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:34:41,365 [INFO] Extracted direct URL: https://rr1---sn-huoob-avnd.googlevideo.com/videoplayback?expire=1758569677&ei=bVDRaO3NEbD6xN8P_6634...
+2025-09-22 14:34:41,367 [INFO] Extracting audio with ffmpeg...
+2025-09-22 14:35:14,813 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 14:37:22,764 [INFO] Transcript generated locally
+2025-09-22 14:37:22,765 [INFO] Extracting frames every 15s...
+2025-09-22 14:37:58,682 [INFO] Extracted 10 frames
+2025-09-22 14:37:58,683 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 14:38:00,099 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 14:38:01,378 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 14:38:02,788 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 14:38:04,221 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 14:38:05,442 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 14:38:06,528 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 14:38:07,672 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 14:38:08,843 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 14:38:10,287 [INFO] Generating caption for frame_0010.jpg...
+2025-09-22 14:38:11,722 [INFO] Requesting final summary from OpenAI...
+2025-09-22 14:38:12,702 [ERROR] Summary generation failed: {
+    "error": {
+        "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/gu
+2025-09-22 14:38:12,703 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 178, in summarize_video
+    raise HTTPException(status_code=500, detail="Failed to generate summary")
+fastapi.exceptions.HTTPException: 500: Failed to generate summary
+2025-09-22 14:55:18,601 [INFO] Starting FastAPI server...
+2025-09-22 14:57:03,805 [INFO] Serving homepage
+2025-09-22 14:57:11,957 [INFO] Serving homepage
+2025-09-22 14:57:17,174 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:57:17,174 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 14:57:29,595 [INFO] Extracted direct URL: https://rr1---sn-huoob-avnd.googlevideo.com/videoplayback?expire=1758571044&ei=xFXRaL69MYmJvdIPxJCws...
+2025-09-22 14:57:29,598 [INFO] Extracting audio with ffmpeg...
+2025-09-22 14:59:11,595 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 15:01:26,626 [INFO] Transcript generated locally
+2025-09-22 15:01:26,628 [INFO] Extracting frames every 15s...
+2025-09-22 15:02:43,300 [INFO] Extracted 10 frames
+2025-09-22 15:02:43,300 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 15:02:46,968 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 15:02:50,494 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 15:02:53,945 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 15:02:55,249 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 15:02:56,106 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 15:02:57,451 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 15:02:58,954 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 15:03:00,628 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 15:03:01,621 [INFO] Generating caption for frame_0010.jpg...
+2025-09-22 15:03:02,678 [INFO] Requesting final summary from OpenAI...
+2025-09-22 15:03:04,104 [ERROR] Summary generation failed: upstream connect error or disconnect/reset before headers. reset reason: connection termination
+2025-09-22 15:03:04,105 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 178, in summarize_video
+    raise HTTPException(status_code=500, detail="Failed to generate summary")
+fastapi.exceptions.HTTPException: 500: Failed to generate summary
+2025-09-22 15:43:45,894 [INFO] Starting FastAPI server...
+2025-09-22 15:45:58,029 [INFO] Starting FastAPI server...
+2025-09-22 15:46:28,833 [INFO] Serving homepage
+2025-09-22 15:46:57,470 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 15:46:57,471 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=YPBTU1kQE_s-KM7I
+2025-09-22 15:47:10,188 [INFO] Extracted direct URL: https://rr1---sn-huoob-avnd.googlevideo.com/videoplayback?expire=1758574025&ei=aWHRaJDLJ__7vdIP7dzI2...
+2025-09-22 15:47:10,191 [INFO] Extracting audio with ffmpeg...
+2025-09-22 15:47:24,835 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 15:49:47,079 [INFO] Transcript generated locally
+2025-09-22 15:49:47,080 [INFO] Extracting frames every 15s...
+2025-09-22 15:49:58,088 [INFO] Extracted 10 frames
+2025-09-22 15:49:58,088 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 15:50:01,118 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 15:50:04,319 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 15:50:19,359 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 15:50:21,920 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 15:50:23,347 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 15:50:24,425 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 15:50:25,705 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 15:50:27,689 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 15:50:29,608 [INFO] Generating caption for frame_0010.jpg...
+2025-09-22 15:50:31,299 [INFO] Requesting final summary from Gemini...
+2025-09-22 15:50:40,978 [INFO] Summary generated successfully with Gemini
+2025-09-22 15:50:40,992 [INFO] Cleaned up job directory
+2025-09-22 16:06:52,622 [INFO] Serving homepage
+2025-09-22 16:07:25,235 [INFO] Received video summarization request for https://youtu.be/dlVXBHSNyeM?si=sHAcO4o41NeLPpLD
+2025-09-22 16:07:25,235 [INFO] Extracting direct video URL for: https://youtu.be/dlVXBHSNyeM?si=sHAcO4o41NeLPpLD
+2025-09-22 16:07:36,807 [INFO] Extracted direct URL: https://rr5---sn-huoob-avnz.googlevideo.com/videoplayback?expire=1758575251&ei=M2bRaKDBI_S_mLAPwtbX-...
+2025-09-22 16:07:36,810 [INFO] Extracting audio with ffmpeg...
+2025-09-22 16:08:02,884 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 16:17:03,313 [INFO] Transcript generated locally
+2025-09-22 16:17:03,314 [INFO] Extracting frames every 15s...
+2025-09-22 16:17:31,063 [INFO] Extracted 10 frames
+2025-09-22 16:17:31,063 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 16:17:33,027 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 16:17:34,540 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 16:17:36,001 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 16:17:37,452 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 16:17:39,511 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 16:17:40,956 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 16:17:42,353 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 16:17:43,591 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 16:17:44,889 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\myvenv\Lib\site-packages\requests\models.py", line 976, in json
+    return complexjson.loads(self.text, **kwargs)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\json\__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\json\decoder.py", line 345, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\json\decoder.py", line 363, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 167, in summarize_video
+    caption = resp.json().get("choices", [{}])[0].get("message", {}).get("content", "Unavailable")
+              ~~~~~~~~~^^
+  File "C:\Users\NEPC\Desktop\Video_analytics\myvenv\Lib\site-packages\requests\models.py", line 980, in json
+    raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)
+requests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+2025-09-22 16:20:42,845 [INFO] Received video summarization request for https://youtu.be/dlVXBHSNyeM?si=sHAcO4o41NeLPpLD
+2025-09-22 16:20:42,847 [INFO] Extracting direct video URL for: https://youtu.be/dlVXBHSNyeM?si=sHAcO4o41NeLPpLD
+2025-09-22 16:20:59,896 [INFO] Extracted direct URL: https://rr5---sn-huoob-avnz.googlevideo.com/videoplayback?expire=1758576050&ei=UmnRaPeNK97yi9oP8sGcu...
+2025-09-22 16:20:59,899 [INFO] Extracting audio with ffmpeg...
+2025-09-22 16:21:32,651 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 16:29:31,163 [INFO] Transcript generated locally
+2025-09-22 16:29:31,164 [INFO] Extracting frames every 15s...
+2025-09-22 16:29:53,744 [INFO] Extracted 10 frames
+2025-09-22 16:29:53,745 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 16:29:55,486 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 16:29:57,086 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 16:29:58,346 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 16:30:00,107 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 16:30:01,591 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 16:30:02,963 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 16:30:04,486 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 16:30:06,025 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 16:30:07,250 [INFO] Generating caption for frame_0010.jpg...
+2025-09-22 16:30:08,651 [INFO] Requesting final summary from Gemini...
+2025-09-22 16:30:11,109 [INFO] Summary generated successfully with Gemini
+2025-09-22 16:30:11,124 [INFO] Cleaned up job directory
+2025-09-22 16:44:37,414 [INFO] Received video summarization request for https://youtu.be/xA74A8IjqC8?si=TmooRaio0diQX0Jx
+2025-09-22 16:44:37,415 [INFO] Extracting direct video URL for: https://youtu.be/xA74A8IjqC8?si=TmooRaio0diQX0Jx
+2025-09-22 16:44:47,566 [INFO] Extracted direct URL: https://rr6---sn-huoob-avnz.googlevideo.com/videoplayback?expire=1758577482&ei=6m7RaPv5MaSz6dsPp-He2...
+2025-09-22 16:44:47,570 [INFO] Extracting audio with ffmpeg...
+2025-09-22 16:49:47,683 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 115, in summarize_video
+    result = subprocess.run(
+        ["ffmpeg", "-i", direct_video_url, "-q:a", "0", "-map", "a", audio_path, "-y"],
+        capture_output=True, text=True, timeout=300
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['ffmpeg', '-i', 'https://rr6---sn-huoob-avnz.googlevideo.com/videoplayback?expire=1758577482&ei=6m7RaPv5MaSz6dsPp-He2Qo&ip=102.88.108.186&id=o-AG9DbpLVw-f3WYZy8ixVYrN2YU1ycbZBAmbdPvMwa9u4&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1758555882%2C&mh=ts&mm=31%2C29&mn=sn-huoob-avnz%2Csn-avn7ln7e&ms=au%2Crdu&mv=m&mvi=6&pl=24&rms=au%2Cau&initcwndbps=230000&bui=ATw7iSXPLt2z9NnaBwV7ieW4Vraao7ZuiuNJbN0oJhiIoShe51ScqjuyoKZpkiunc375UZ-fIE0HAbZc&spc=hcYD5SKgdDPKjfNBTLsr&vprv=1&svpuc=1&mime=video%2Fmp4&ns=tdG7PD9kLO_PGWesnB4B_JcQ&rqh=1&cnr=14&ratebypass=yes&dur=1155.773&lmt=1738326246311802&mt=1758555491&fvip=4&fexp=51552689%2C51565116%2C51565681%2C51580968&c=TVHTML5_SIMPLY&sefc=1&txp=4438534&n=MERESEQT_WDzwg&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cspc%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Ccnr%2Cratebypass%2Cdur%2Clmt&sig=AJfQdSswRgIhAM1usBGvxLNmAttAcGdY7MikcYOZ2bXVZTjQpi3bbSYzAiEAo_ecZqKZIN0fjhyAh8Ll9YjILMYcf4-E780rKA_iHfM%3D&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgPwF94Q0nbblcwRwucMVADYgzmYQw5O-2C5VGwMlVADwCIFJOzgMWNKgE3OsOs33I5WxqPmcgLXUUR9_pKj6tTrmn', '-q:a', '0', '-map', 'a', 'video_jobs\\job/audio.mp3', '-y']' timed out after 300 seconds
+2025-09-22 17:15:24,492 [INFO] Starting FastAPI server...
+2025-09-22 17:15:38,437 [INFO] Serving homepage
+2025-09-22 17:15:42,353 [INFO] Received video summarization request for https://youtu.be/xA74A8IjqC8?si=TmooRaio0diQX0Jx
+2025-09-22 17:15:42,354 [INFO] Extracting direct video URL for: https://youtu.be/xA74A8IjqC8?si=TmooRaio0diQX0Jx
+2025-09-22 17:15:52,628 [INFO] Extracted direct URL: https://rr6---sn-huoob-avnz.googlevideo.com/videoplayback?expire=1758579348&ei=NHbRaLq4Er6EmLAPna7fi...
+2025-09-22 17:15:52,631 [INFO] Extracting audio with ffmpeg...
+2025-09-22 17:20:52,700 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 115, in summarize_video
+    result = subprocess.run(
+        ["ffmpeg", "-i", direct_video_url, "-q:a", "0", "-map", "a", audio_path, "-y"],
+        capture_output=True, text=True, timeout=300
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['ffmpeg', '-i', 'https://rr6---sn-huoob-avnz.googlevideo.com/videoplayback?expire=1758579348&ei=NHbRaLq4Er6EmLAPna7fiAU&ip=102.88.108.186&id=o-AJzb8xl3ojtm-nbyL-3bBZ16adrO06Vh1bEC-6-6ACNt&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1758557748%2C&mh=ts&mm=31%2C29&mn=sn-huoob-avnz%2Csn-avn7ln7l&ms=au%2Crdu&mv=m&mvi=6&pl=24&rms=au%2Cau&initcwndbps=220000&bui=ATw7iSVwipXICGF3i_EUvj__SnzYxmGmdAk_5igTSOs5glcp8Yq37Qg0ekSn3g7PqaUFQWF6g9_kcuxq&spc=hcYD5ZHknvSokvsSm0A5&vprv=1&svpuc=1&mime=video%2Fmp4&ns=50uG4tYZwl7f6Fvn0vkba3cQ&rqh=1&cnr=14&ratebypass=yes&dur=1155.773&lmt=1738326246311802&mt=1758557410&fvip=4&fexp=51552689%2C51565116%2C51565681%2C51580968&c=TVHTML5_SIMPLY&sefc=1&txp=4438534&n=JSU0Y81miABZng&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cspc%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Ccnr%2Cratebypass%2Cdur%2Clmt&sig=AJfQdSswRgIhAMDQSdb0FCFvjv67wDGgT-5G7zMjBewz-Y_Tla6SJKa6AiEA438Cj55bCfc3pfgmeQa381mSNLL5kUsl1-iAGkgiGTI%3D&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRgIhAKfqkORCXdbXrQ-swE9SLC1hYUYpJhUdVDNgeStRL7x2AiEA0YTqjbbhnNKMmHPbSJ3TfOa8SIeTCzBSqSH9QedzO2Q%3D', '-q:a', '0', '-map', 'a', 'video_jobs\\job/audio.mp3', '-y']' timed out after 300 seconds
+2025-09-22 17:30:05,249 [INFO] Starting FastAPI server...
+2025-09-22 17:30:15,472 [INFO] Serving homepage
+2025-09-22 17:30:19,671 [INFO] Received video summarization request for https://youtu.be/xA74A8IjqC8?si=TmooRaio0diQX0Jx
+2025-09-22 17:30:19,671 [INFO] Extracting direct video URL for: https://youtu.be/xA74A8IjqC8?si=TmooRaio0diQX0Jx
+2025-09-22 17:30:30,987 [INFO] Extracted direct URL: https://rr6---sn-huoob-avnz.googlevideo.com/videoplayback?expire=1758580226&ei=oXnRaMSCOp-JvdIP3dCJ4...
+2025-09-22 17:30:30,988 [INFO] Attempting to extract audio with ffmpeg...
+2025-09-22 17:30:30,989 [INFO] Using yt-dlp to download audio directly...
+2025-09-22 17:30:32,323 [WARNING] yt-dlp audio download failed: 
+Usage: yt-dlp [OPTIONS] URL [URL...]
+
+yt-dlp: error: no such option: --max-duration
+
+2025-09-22 17:30:32,323 [WARNING] yt-dlp audio extraction failed: yt-dlp failed
+2025-09-22 17:30:32,323 [INFO] Falling back to FFmpeg with shorter timeout...
+2025-09-22 17:32:32,399 [WARNING] Both audio extraction methods failed: Command '['ffmpeg', '-i', 'https://rr6---sn-huoob-avnz.googlevideo.com/videoplayback?expire=1758580226&ei=oXnRaMSCOp-JvdIP3dCJ4QI&ip=102.88.108.186&id=o-AKGD4YyaXQf8wQUYse1e5d8uTqZaN-HTmC6L94KUYjEe&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1758558626%2C&mh=ts&mm=31%2C29&mn=sn-huoob-avnz%2Csn-avn7ln7e&ms=au%2Crdu&mv=m&mvi=6&pl=24&rms=au%2Cau&initcwndbps=220000&bui=ATw7iSVQB8me6cHy7trh3f19YiFrBj--OsWP4TrxwsoQEOPS6IAhXDz38kKzKa95PSlUyVfGs4aSNEN2&spc=hcYD5cgTDtX_oDA3-hqD&vprv=1&svpuc=1&mime=video%2Fmp4&ns=geLgQSymyDjAGpQx_-Nx_UcQ&rqh=1&cnr=14&ratebypass=yes&dur=1155.773&lmt=1738326246311802&mt=1758557646&fvip=4&fexp=51552689%2C51565116%2C51565681%2C51580968&c=TVHTML5_SIMPLY&sefc=1&txp=4438534&n=CHgD-Rp3QKEEkg&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cspc%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Ccnr%2Cratebypass%2Cdur%2Clmt&sig=AJfQdSswRQIgK6xlXy652ucAUBgVI5DCTsWlAtTVt1GYOVrcLuu37FICIQDERIcrcplBeoq4dTsPkQoFbBZOz5OWEr1db-n3MDpk4w%3D%3D&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgfJpl8e9ylIMFmLaddqe1zr3Vf81-y5EpvVPE7PuVk30CIFxvGlErVwET5Lp8TdMVuJjFvzrh6IHWiJYkv0ccPyu0', '-t', '600', '-q:a', '0', '-map', 'a', 'video_jobs\\job/audio.mp3', '-y']' timed out after 120 seconds
+2025-09-22 17:32:32,400 [INFO] Proceeding with visual-only analysis
+2025-09-22 17:32:32,401 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 17:34:02,069 [INFO] Transcript generated successfully (1661 characters)
+2025-09-22 17:34:02,070 [INFO] Extracting frames every 15s...
+2025-09-22 17:36:58,517 [INFO] Extracted 10 frames
+2025-09-22 17:36:58,518 [INFO] Generating caption for frame_0001.jpg...
+2025-09-22 17:37:00,062 [INFO] Generating caption for frame_0002.jpg...
+2025-09-22 17:37:01,763 [INFO] Generating caption for frame_0003.jpg...
+2025-09-22 17:37:03,354 [INFO] Generating caption for frame_0004.jpg...
+2025-09-22 17:37:05,013 [INFO] Generating caption for frame_0005.jpg...
+2025-09-22 17:37:06,464 [INFO] Generating caption for frame_0006.jpg...
+2025-09-22 17:37:08,003 [INFO] Generating caption for frame_0007.jpg...
+2025-09-22 17:37:09,239 [INFO] Generating caption for frame_0008.jpg...
+2025-09-22 17:37:10,568 [INFO] Generating caption for frame_0009.jpg...
+2025-09-22 17:37:12,108 [INFO] Generating caption for frame_0010.jpg...
+2025-09-22 17:37:13,684 [INFO] Requesting final summary from Gemini...
+2025-09-22 17:37:17,225 [INFO] Summary generated successfully with Gemini
+2025-09-22 17:37:17,247 [INFO] Cleaned up job directory
+2025-09-22 20:03:33,550 [INFO] Starting FastAPI server...
+2025-09-22 20:06:34,473 [INFO] Received video summarization request for https://youtu.be/RGaW82k4dK4?si=RSRQfn-9FvSKPppa
+2025-09-22 20:06:34,474 [INFO] Extracting direct video URL for: https://youtu.be/RGaW82k4dK4?si=RSRQfn-9FvSKPppa
+2025-09-22 20:06:45,937 [INFO] Extracted direct URL: https://rr1---sn-huoob-avnd.googlevideo.com/videoplayback?expire=1758589602&ei=Qp7RaL-9M-L0vdIPia-Gy...
+2025-09-22 20:06:45,939 [INFO] Attempting to extract audio with ffmpeg...
+2025-09-22 20:06:45,939 [INFO] Using yt-dlp to download audio directly...
+2025-09-22 20:06:46,641 [WARNING] yt-dlp audio download failed: 
+Usage: yt-dlp [OPTIONS] URL [URL...]
+
+yt-dlp: error: no such option: --max-duration
+
+2025-09-22 20:06:46,641 [WARNING] yt-dlp audio extraction failed: yt-dlp failed
+2025-09-22 20:06:46,641 [INFO] Falling back to FFmpeg with shorter timeout...
+2025-09-22 20:08:38,139 [INFO] Audio extracted successfully with FFmpeg fallback
+2025-09-22 20:08:38,139 [INFO] Transcribing audio locally with Whisper...
+2025-09-22 23:04:07,609 [INFO] Starting FastAPI server...
+2025-09-22 23:07:37,751 [INFO] Serving homepage
+2025-09-22 23:07:56,498 [INFO] Serving homepage
+2025-09-22 23:09:17,140 [INFO] Received video summarization request for https://youtu.be/yGbGxWMv9KA?si=26_VyIFzNL5pdHJP
+2025-09-22 23:09:17,140 [INFO] Extracting direct video URL for: https://youtu.be/yGbGxWMv9KA?si=26_VyIFzNL5pdHJP
+2025-09-22 23:09:26,282 [ERROR] yt-dlp failed: WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = yTyp9gXtVW5IzSq2 ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = pmywA_pFXlqjC8PH ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = HXb5V9ZUV7UAVACo ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = u6HD0OiritFNHS-7 ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = UarWqnhnF-KX62IQ ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] yGbGxWMv9KA: Requested format is not available. Use --list-formats for a list of available formats
+
+2025-09-22 23:09:26,285 [ERROR] Failed to extract video URL
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 75, in get_direct_video_url
+    raise HTTPException(status_code=400, detail=f"yt-dlp error: {result.stderr}")
+fastapi.exceptions.HTTPException: 400: yt-dlp error: WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = yTyp9gXtVW5IzSq2 ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = pmywA_pFXlqjC8PH ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = HXb5V9ZUV7UAVACo ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = u6HD0OiritFNHS-7 ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = UarWqnhnF-KX62IQ ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] yGbGxWMv9KA: Requested format is not available. Use --list-formats for a list of available formats
+
+2025-09-22 23:09:26,289 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 75, in get_direct_video_url
+    raise HTTPException(status_code=400, detail=f"yt-dlp error: {result.stderr}")
+fastapi.exceptions.HTTPException: 400: yt-dlp error: WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = yTyp9gXtVW5IzSq2 ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = pmywA_pFXlqjC8PH ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = HXb5V9ZUV7UAVACo ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = u6HD0OiritFNHS-7 ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = UarWqnhnF-KX62IQ ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] yGbGxWMv9KA: Requested format is not available. Use --list-formats for a list of available formats
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 102, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 86, in get_direct_video_url
+    raise HTTPException(status_code=400, detail=f"Failed to extract video URL: {str(e)}")
+fastapi.exceptions.HTTPException: 400: Failed to extract video URL: 400: yt-dlp error: WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = yTyp9gXtVW5IzSq2 ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = pmywA_pFXlqjC8PH ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = HXb5V9ZUV7UAVACo ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = u6HD0OiritFNHS-7 ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: nsig extraction failed: Some formats may be missing
+         n = UarWqnhnF-KX62IQ ; player = https://www.youtube.com/s/player/377ca75b/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] yGbGxWMv9KA: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] yGbGxWMv9KA: Requested format is not available. Use --list-formats for a list of available formats
+
+2025-09-23 23:25:13,614 [INFO] Starting FastAPI server...
+2025-09-23 23:25:32,371 [INFO] Serving homepage
+2025-09-23 23:32:37,357 [INFO] Received video summarization request for https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:32:37,369 [INFO] Extracting direct video URL for: https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:32:54,240 [INFO] Extracted direct URL: https://rr2---sn-aigl6n6s.googlevideo.com/videoplayback?expire=1758688367&ei=DyDTaK-_Ld3AzPsP0qr4qAM...
+2025-09-23 23:32:54,246 [INFO] Extracting audio with FFmpeg...
+2025-09-23 23:35:54,347 [WARNING] FFmpeg audio extraction timed out
+2025-09-23 23:35:54,347 [INFO] Proceeding with visual-only analysis
+2025-09-23 23:35:54,348 [INFO] Transcribing audio locally with Whisper...
+2025-09-23 23:36:30,722 [INFO] Transcript generated successfully (3342 characters)
+2025-09-23 23:36:30,722 [INFO] Extracting frames every 15s...
+2025-09-23 23:39:30,769 [ERROR] Frame extraction timed out
+2025-09-23 23:39:30,772 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 166, in summarize_video
+    result = subprocess.run([
+        "ffmpeg", "-i", direct_video_url,
+    ...<2 lines>...
+        f"{frames_dir}/frame_%04d.jpg"
+    ], capture_output=True, text=True, timeout=180)  # 3 minute timeout
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['ffmpeg', '-i', 'https://rr2---sn-aigl6n6s.googlevideo.com/videoplayback?expire=1758688367&ei=DyDTaK-_Ld3AzPsP0qr4qAM&ip=2c0f%3Af5c0%3A54e%3Ab18%3Ad171%3Aba78%3Ab711%3A655b&id=o-ALuBIV64r0xYEuOUpWtNXP-R61UIhAf6y9i397vVPqck&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1758666767%2C&mh=44&mm=31%2C26&mn=sn-aigl6n6s%2Csn-5hnekn7s&ms=au%2Conr&mv=m&mvi=2&pl=44&rms=au%2Cau&initcwndbps=255000&bui=ATw7iSWXTKNyQzOLymu0H-xgnsYWK6enzl2JaU4J3RJVAvAHvH9yHIbivgXYUnlbV2Nir2zNbQoriF1d&spc=hcYD5ZdG0mSO2IyuopW9&vprv=1&svpuc=1&mime=video%2Fmp4&ns=6VBrESCiaGJkxqDefSFcAQkQ&rqh=1&gir=yes&clen=32329729&ratebypass=yes&dur=558.323&lmt=1758595089322605&mt=1758665625&fvip=2&fexp=51552689%2C51565116%2C51565682%2C51580968&c=TVHTML5_SIMPLY&sefc=1&txp=4538534&n=Y8dtoDnKwACw1w&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cspc%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=AJfQdSswRQIgdLQXpTvruTC4XdkyzSOFVcLDJdQCqOVuud6Q_zFWin0CIQD5lk-OSVBZze0dj0WCXMF7hYCKWxlw_3JbTQ4jW69Lug%3D%3D&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRQIgHsymlHZqnfw4SyXy5Z9A-VJlEeQlUD0FSkV3vvgikGQCIQCHWDlq5QXW4SH1gnBwGs8yPWi_jJvfjQFcITnjrnj9kg%3D%3D', '-t', '900', '-vf', 'fps=1/15', 'video_jobs\\job/frames/frame_%04d.jpg']' timed out after 180 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 179, in summarize_video
+    raise HTTPException(status_code=408, detail="Frame extraction timed out - video may be too long")
+fastapi.exceptions.HTTPException: 408: Frame extraction timed out - video may be too long
+2025-09-23 23:46:35,904 [INFO] Starting FastAPI server...
+2025-09-23 23:48:59,257 [INFO] Serving homepage
+2025-09-23 23:49:03,898 [INFO] Received video summarization request for https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:49:03,898 [INFO] Extracting direct video URL for: https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:49:39,126 [ERROR] yt-dlp timeout
+2025-09-23 23:49:39,126 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 68, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 102, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 83, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-23 23:49:39,140 [INFO] Received video summarization request for https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:49:39,141 [INFO] Extracting direct video URL for: https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:50:14,186 [ERROR] yt-dlp timeout
+2025-09-23 23:50:14,187 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 68, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 102, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 83, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-23 23:50:14,508 [INFO] Received video summarization request for https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:50:14,508 [INFO] Extracting direct video URL for: https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:50:49,531 [ERROR] yt-dlp timeout
+2025-09-23 23:50:49,531 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 68, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 102, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 83, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-23 23:51:11,957 [INFO] Received video summarization request for https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:51:11,958 [INFO] Extracting direct video URL for: https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:51:46,984 [ERROR] yt-dlp timeout
+2025-09-23 23:51:46,984 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 68, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 102, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 83, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-23 23:51:47,304 [INFO] Received video summarization request for https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:51:47,305 [INFO] Extracting direct video URL for: https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-
+2025-09-23 23:52:22,327 [ERROR] yt-dlp timeout
+2025-09-23 23:52:22,327 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 68, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/vV41TkYvQoE?si=pAKLbwtNRvv0Kb4-']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 102, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 83, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-24 00:00:33,981 [INFO] Starting FastAPI server...
+2025-09-24 00:01:11,940 [INFO] Received video summarization request for https://youtu.be/dIH1F1WlE84?si=VnqrJlZf-dFL9jL8
+2025-09-24 00:01:11,941 [INFO] Extracting direct video URL for: https://youtu.be/dIH1F1WlE84?si=VnqrJlZf-dFL9jL8
+2025-09-24 00:02:13,091 [ERROR] yt-dlp timeout
+2025-09-24 00:02:13,092 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 68, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/dIH1F1WlE84?si=VnqrJlZf-dFL9jL8']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 102, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 83, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-24 00:04:23,958 [INFO] Received video summarization request for https://youtu.be/dIH1F1WlE84?si=VnqrJlZf-dFL9jL8
+2025-09-24 00:04:24,172 [INFO] Extracting direct video URL for: https://youtu.be/dIH1F1WlE84?si=VnqrJlZf-dFL9jL8
+2025-09-24 00:05:15,373 [ERROR] yt-dlp timeout
+2025-09-24 00:05:15,373 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 68, in get_direct_video_url
+    result = subprocess.run(
+        ["yt-dlp", "--get-url", "-f", "best[ext=mp4]/best", url],
+        capture_output=True, text=True, timeout=30
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/dIH1F1WlE84?si=VnqrJlZf-dFL9jL8']' timed out after 30 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 102, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 83, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-24 00:06:40,739 [INFO] Received video summarization request for https://youtu.be/dIH1F1WlE84?si=VnqrJlZf-dFL9jL8
+2025-09-24 00:06:40,740 [INFO] Extracting direct video URL for: https://youtu.be/dIH1F1WlE84?si=VnqrJlZf-dFL9jL8
+2025-09-24 00:06:51,867 [ERROR] yt-dlp failed: WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = hyaQR1k5UAMZ8AU1g ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = SeLN-pdJRd1-x_jiX ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = vQFN3ly-KWrJnwj1s ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = wyvJPUu04kbJtZyt- ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = P8yBXhzh4EqwgWTzw ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] dIH1F1WlE84: Requested format is not available. Use --list-formats for a list of available formats
+
+2025-09-24 00:06:51,869 [ERROR] Failed to extract video URL
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 75, in get_direct_video_url
+    raise HTTPException(status_code=400, detail=f"yt-dlp error: {result.stderr}")
+fastapi.exceptions.HTTPException: 400: yt-dlp error: WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = hyaQR1k5UAMZ8AU1g ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = SeLN-pdJRd1-x_jiX ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = vQFN3ly-KWrJnwj1s ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = wyvJPUu04kbJtZyt- ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = P8yBXhzh4EqwgWTzw ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] dIH1F1WlE84: Requested format is not available. Use --list-formats for a list of available formats
+
+2025-09-24 00:06:51,870 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 75, in get_direct_video_url
+    raise HTTPException(status_code=400, detail=f"yt-dlp error: {result.stderr}")
+fastapi.exceptions.HTTPException: 400: yt-dlp error: WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = hyaQR1k5UAMZ8AU1g ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = SeLN-pdJRd1-x_jiX ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = vQFN3ly-KWrJnwj1s ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = wyvJPUu04kbJtZyt- ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = P8yBXhzh4EqwgWTzw ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] dIH1F1WlE84: Requested format is not available. Use --list-formats for a list of available formats
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 102, in summarize_video
+    direct_video_url = get_direct_video_url(req.video_url)
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 86, in get_direct_video_url
+    raise HTTPException(status_code=400, detail=f"Failed to extract video URL: {str(e)}")
+fastapi.exceptions.HTTPException: 400: Failed to extract video URL: 400: yt-dlp error: WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = hyaQR1k5UAMZ8AU1g ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = SeLN-pdJRd1-x_jiX ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = vQFN3ly-KWrJnwj1s ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = wyvJPUu04kbJtZyt- ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: nsig extraction failed: Some formats may be missing
+         n = P8yBXhzh4EqwgWTzw ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] dIH1F1WlE84: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] dIH1F1WlE84: Requested format is not available. Use --list-formats for a list of available formats
+
+2025-09-24 00:07:28,766 [INFO] Received video summarization request for https://youtu.be/dIH1F1WlE84?si=VnqrJlZf-dFL9jL8
+2025-09-24 00:07:28,767 [INFO] Extracting direct video URL for: https://youtu.be/dIH1F1WlE84?si=VnqrJlZf-dFL9jL8
+2025-09-24 00:07:46,805 [INFO] Extracted direct URL: https://rr3---sn-aigl6nz7.googlevideo.com/videoplayback?expire=1758690460&ei=PCjTaI2bOa2ri9oPi7XD0Qk...
+2025-09-24 00:07:46,807 [INFO] Extracting audio with FFmpeg...
+2025-09-24 00:09:00,283 [INFO] Audio extracted successfully with FFmpeg
+2025-09-24 00:09:00,284 [INFO] Transcribing audio locally with Whisper...
+2025-09-24 00:13:58,467 [INFO] Transcript generated successfully (21347 characters)
+2025-09-24 00:13:58,469 [INFO] Extracting frames every 15s...
+2025-09-24 00:14:34,029 [INFO] Extracted 10 frames
+2025-09-24 00:14:34,030 [INFO] Generating caption for frame_0001.jpg...
+2025-09-24 00:14:37,572 [ERROR] OpenAI API request failed for frame_0001.jpg: Status 429, Response: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-h1WVmlUfnx92skq60zFaQMVj on tokens per min (TPM): Limit 100000, Used 100000, Requested 789. Please try again
+2025-09-24 00:14:37,573 [INFO] Generating caption for frame_0002.jpg...
+2025-09-24 00:14:39,149 [ERROR] OpenAI API request failed for frame_0002.jpg: Status 429, Response: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-h1WVmlUfnx92skq60zFaQMVj on tokens per min (TPM): Limit 100000, Used 100000, Requested 789. Please try again
+2025-09-24 00:14:39,149 [INFO] Generating caption for frame_0003.jpg...
+2025-09-24 00:14:41,549 [ERROR] OpenAI API request failed for frame_0003.jpg: Status 429, Response: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-h1WVmlUfnx92skq60zFaQMVj on tokens per min (TPM): Limit 100000, Used 100000, Requested 789. Please try again
+2025-09-24 00:14:41,550 [INFO] Generating caption for frame_0004.jpg...
+2025-09-24 00:14:43,451 [ERROR] OpenAI API request failed for frame_0004.jpg: Status 429, Response: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-h1WVmlUfnx92skq60zFaQMVj on requests per min (RPM): Limit 3, Used 3, Requested 1. Please try again in 20s. V
+2025-09-24 00:14:43,452 [INFO] Generating caption for frame_0005.jpg...
+2025-09-24 00:14:45,354 [ERROR] OpenAI API request failed for frame_0005.jpg: Status 429, Response: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-h1WVmlUfnx92skq60zFaQMVj on requests per min (RPM): Limit 3, Used 3, Requested 1. Please try again in 20s. V
+2025-09-24 00:14:45,355 [INFO] Generating caption for frame_0006.jpg...
+2025-09-24 00:14:47,360 [ERROR] OpenAI API request failed for frame_0006.jpg: Status 429, Response: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-h1WVmlUfnx92skq60zFaQMVj on requests per min (RPM): Limit 3, Used 3, Requested 1. Please try again in 20s. V
+2025-09-24 00:14:47,361 [INFO] Generating caption for frame_0007.jpg...
+2025-09-24 00:14:49,473 [ERROR] OpenAI API request failed for frame_0007.jpg: Status 429, Response: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-h1WVmlUfnx92skq60zFaQMVj on requests per min (RPM): Limit 3, Used 3, Requested 1. Please try again in 20s. V
+2025-09-24 00:14:49,473 [INFO] Generating caption for frame_0008.jpg...
+2025-09-24 00:14:51,005 [ERROR] OpenAI API request failed for frame_0008.jpg: Status 429, Response: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-h1WVmlUfnx92skq60zFaQMVj on requests per min (RPM): Limit 3, Used 3, Requested 1. Please try again in 20s. V
+2025-09-24 00:14:51,006 [INFO] Generating caption for frame_0009.jpg...
+2025-09-24 00:14:53,077 [ERROR] OpenAI API request failed for frame_0009.jpg: Status 429, Response: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-h1WVmlUfnx92skq60zFaQMVj on requests per min (RPM): Limit 3, Used 3, Requested 1. Please try again in 20s. V
+2025-09-24 00:14:53,077 [INFO] Generating caption for frame_0010.jpg...
+2025-09-24 00:14:54,646 [ERROR] OpenAI API request failed for frame_0010.jpg: Status 429, Response: {
+    "error": {
+        "message": "Rate limit reached for gpt-4o-mini in organization org-h1WVmlUfnx92skq60zFaQMVj on requests per min (RPM): Limit 3, Used 3, Requested 1. Please try again in 20s. V
+2025-09-24 00:14:54,647 [INFO] Caption generation completed. Successfully generated: 0/10 captions
+2025-09-24 00:14:54,648 [INFO] Requesting final summary from Gemini...
+2025-09-24 00:15:00,162 [INFO] Summary generated successfully with Gemini
+2025-09-24 00:15:00,181 [INFO] Cleaned up job directory
+2025-09-24 18:08:59,105 [INFO] Starting enhanced FastAPI server for TikTok/Twitter analysis...
+2025-09-24 18:12:25,272 [INFO] Serving homepage
+2025-09-24 18:12:30,612 [INFO] Received video summarization request for https://youtu.be/ZtrVohDts5Q?si=ZyESou2ki9M9n3dE
+2025-09-24 18:12:30,617 [INFO] Extracting direct video URL for: https://youtu.be/ZtrVohDts5Q?si=ZyESou2ki9M9n3dE
+2025-09-24 18:12:30,623 [INFO] Detected platform: youtube
+2025-09-24 18:12:30,635 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 18:13:05,175 [ERROR] yt-dlp failed: WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = pQC01EB_DP38sFnJa ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = GTtEypODWSPb4OVRJ ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = U2-j4e4C62unIt349 ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = 9sVBUkIihtcK-JT-q ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = HF-463rh6G9hJ-P-U ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] ZtrVohDts5Q: Requested format is not available. Use --list-formats for a list of available formats
+
+2025-09-24 18:13:05,178 [INFO] Retrying with generic options...
+2025-09-24 18:13:22,335 [ERROR] Failed to extract video URL
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 146, in get_direct_video_url
+    raise HTTPException(status_code=400, detail=f"yt-dlp error: {result.stderr}")
+fastapi.exceptions.HTTPException: 400: yt-dlp error: WARNING: "-f best" selects the best pre-merged format which is often not the best option.
+         To let yt-dlp download and merge the best available formats, simply do not pass any format selection.
+         If you know what you are doing and want only the best pre-merged format, use "-f b" instead to suppress this warning
+WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = K3664dPUMoVFxm_2P ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = QKlmmZ7GuqJhcyVOI ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = FXW8TCETfr6dd7Haq ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = JgOHRchyjvyORG4bN ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = ybGtuJkrdZaeNkZM0 ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] ZtrVohDts5Q: Requested format is not available. Use --list-formats for a list of available formats
+
+2025-09-24 18:13:22,337 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 146, in get_direct_video_url
+    raise HTTPException(status_code=400, detail=f"yt-dlp error: {result.stderr}")
+fastapi.exceptions.HTTPException: 400: yt-dlp error: WARNING: "-f best" selects the best pre-merged format which is often not the best option.
+         To let yt-dlp download and merge the best available formats, simply do not pass any format selection.
+         If you know what you are doing and want only the best pre-merged format, use "-f b" instead to suppress this warning
+WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = K3664dPUMoVFxm_2P ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = QKlmmZ7GuqJhcyVOI ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = FXW8TCETfr6dd7Haq ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = JgOHRchyjvyORG4bN ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = ybGtuJkrdZaeNkZM0 ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] ZtrVohDts5Q: Requested format is not available. Use --list-formats for a list of available formats
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 218, in summarize_video
+    direct_video_url, platform = get_direct_video_url(req.video_url)
+                                 ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 159, in get_direct_video_url
+    raise HTTPException(status_code=400, detail=f"Failed to extract video URL: {str(e)}")
+fastapi.exceptions.HTTPException: 400: Failed to extract video URL: 400: yt-dlp error: WARNING: "-f best" selects the best pre-merged format which is often not the best option.
+         To let yt-dlp download and merge the best available formats, simply do not pass any format selection.
+         If you know what you are doing and want only the best pre-merged format, use "-f b" instead to suppress this warning
+WARNING: [youtube] Falling back to generic n function search
+         player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = K3664dPUMoVFxm_2P ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = QKlmmZ7GuqJhcyVOI ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = FXW8TCETfr6dd7Haq ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = JgOHRchyjvyORG4bN ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: nsig extraction failed: Some formats may be missing
+         n = ybGtuJkrdZaeNkZM0 ; player = https://www.youtube.com/s/player/2b83d2e0/player_ias.vflset/en_US/base.js
+         Please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+WARNING: [youtube] ZtrVohDts5Q: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: Only images are available for download. use --list-formats to see them
+ERROR: [youtube] ZtrVohDts5Q: Requested format is not available. Use --list-formats for a list of available formats
+
+2025-09-24 18:30:22,326 [INFO] Starting enhanced FastAPI server for TikTok/Twitter analysis...
+2025-09-24 18:30:37,123 [INFO] Serving homepage
+2025-09-24 18:30:46,704 [INFO] Received video summarization request for https://youtu.be/ZtrVohDts5Q?si=ZyESou2ki9M9n3dE
+2025-09-24 18:30:46,704 [INFO] Extracting direct video URL for: https://youtu.be/ZtrVohDts5Q?si=ZyESou2ki9M9n3dE
+2025-09-24 18:30:46,755 [INFO] Detected platform: youtube
+2025-09-24 18:30:46,756 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 18:31:04,351 [INFO] Extracted direct URL: https://rr4---sn-aigl6ns6.googlevideo.com/videoplayback?expire=1758756659&ei=0yrUaOHBDoe89fgP7LPguQo...
+2025-09-24 18:31:04,351 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 18:31:04,353 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 18:31:10,171 [WARNING] FFmpeg audio extraction failed: ffmpeg version 8.0-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-lcms2 --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libopenjpeg --enable-libquirc --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-liboapv --enable-libqrencode --enable-librav1e --enable-libsvtav1 --enable-libvvenc --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-openal --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-liblc3 --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint --enable-whisper
+  libavutil      60.  8.100 / 60.  8.100
+  libavcodec     62. 11.100 / 62. 11.100
+  libavformat    62.  3.100 / 62.  3.100
+  libavdevice    62.  1.100 / 62.  1.100
+  libavfilter    11.  4.100 / 11.  4.100
+  libswscale      9.  1.100 /  9.  1.100
+  libswresample   6.  1.100 /  6.  1.100
+[tcp @ 000001ecbb949d80] Connection to tcp://rr4---sn-aigl6ns6.googlevideo.com:443 failed: Error number -138 occurred
+[in#0 @ 000001ecbb947500] Error opening input: Error number -138 occurred
+Error opening input file https://rr4---sn-aigl6ns6.googlevideo.com/videoplayback?expire=1758756659&ei=0yrUaOHBDoe89fgP7LPguQo&ip=2c0f%3Af5c0%3A520%3Abf5%3A2162%3A2c42%3Af020%3Ab962&id=o-AESouT480pIs4W4STosB-WbRIZNAjt8mkDhsoC-g8Lrz&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1758735059%2C&mh=4W&mm=31%2C26&mn=sn-aigl6ns6%2Csn-5hnekn76&ms=au%2Conr&mv=m&mvi=4&pl=44&rms=au%2Cau&initcwndbps=583750&bui=ATw7iSV0MzvRiXYO5MmXKTIo2lQo_h4JkZ2mGs4oiQzoe7RDoMMBZksALIJpqRhrz-GVamyCAv0T0-bf&spc=hcYD5SEh5T_UwwNZQ9qS&vprv=1&svpuc=1&mime=video%2Fmp4&ns=857arLljumIDRD3lVPxr9k8Q&rqh=1&gir=yes&clen=54632789&ratebypass=yes&dur=625.963&lmt=1737326083570497&mt=1758734460&fvip=1&fexp=51552689%2C51565115%2C51565682%2C51580968&c=TVHTML5_SIMPLY&sefc=1&txp=5538534&n=hHTa40dJy01dpA&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cspc%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=AJfQdSswRQIgddpDMIQDJuEx4esZGtI6Z6eMrXLwgGqGSiFWKkuQeHYCIQC2yVzPUFCtmGT8nFHCZcMs5BiVLR3OuGXVN3vU9X8vLw%3D%3D&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRQIhANHrgCVcIdQQ1Cim639qdVVIn6CwQUNtWJgOvGvvmm6gAiA1oT5L9pjWPtyyJnlWUDFv7TCM2RKO4ax8hRPiSL5BJA%3D%3D.
+Error opening input files: Error number -138 occurred
+
+2025-09-24 18:31:10,174 [INFO] Proceeding with visual-only analysis
+2025-09-24 18:31:10,174 [INFO] Extracting frames every 30s for youtube...
+2025-09-24 18:33:10,208 [ERROR] Frame extraction timed out
+2025-09-24 18:33:10,209 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 293, in summarize_video
+    result = subprocess.run(frame_cmd, capture_output=True, text=True, timeout=120)
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['ffmpeg', '-i', 'https://rr4---sn-aigl6ns6.googlevideo.com/videoplayback?expire=1758756659&ei=0yrUaOHBDoe89fgP7LPguQo&ip=2c0f%3Af5c0%3A520%3Abf5%3A2162%3A2c42%3Af020%3Ab962&id=o-AESouT480pIs4W4STosB-WbRIZNAjt8mkDhsoC-g8Lrz&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1758735059%2C&mh=4W&mm=31%2C26&mn=sn-aigl6ns6%2Csn-5hnekn76&ms=au%2Conr&mv=m&mvi=4&pl=44&rms=au%2Cau&initcwndbps=583750&bui=ATw7iSV0MzvRiXYO5MmXKTIo2lQo_h4JkZ2mGs4oiQzoe7RDoMMBZksALIJpqRhrz-GVamyCAv0T0-bf&spc=hcYD5SEh5T_UwwNZQ9qS&vprv=1&svpuc=1&mime=video%2Fmp4&ns=857arLljumIDRD3lVPxr9k8Q&rqh=1&gir=yes&clen=54632789&ratebypass=yes&dur=625.963&lmt=1737326083570497&mt=1758734460&fvip=1&fexp=51552689%2C51565115%2C51565682%2C51580968&c=TVHTML5_SIMPLY&sefc=1&txp=5538534&n=hHTa40dJy01dpA&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cspc%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=AJfQdSswRQIgddpDMIQDJuEx4esZGtI6Z6eMrXLwgGqGSiFWKkuQeHYCIQC2yVzPUFCtmGT8nFHCZcMs5BiVLR3OuGXVN3vU9X8vLw%3D%3D&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRQIhANHrgCVcIdQQ1Cim639qdVVIn6CwQUNtWJgOvGvvmm6gAiA1oT5L9pjWPtyyJnlWUDFv7TCM2RKO4ax8hRPiSL5BJA%3D%3D', '-t', '300', '-vf', 'fps=1/30', '-threads', '4', '-preset', 'ultrafast', 'video_jobs\\job/frames/frame_%04d.jpg']' timed out after 120 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 301, in summarize_video
+    raise HTTPException(status_code=408, detail="Frame extraction timed out")
+fastapi.exceptions.HTTPException: 408: Frame extraction timed out
+2025-09-24 18:33:10,575 [INFO] Received video summarization request for https://youtu.be/ZtrVohDts5Q?si=ZyESou2ki9M9n3dE
+2025-09-24 18:33:10,575 [INFO] Extracting direct video URL for: https://youtu.be/ZtrVohDts5Q?si=ZyESou2ki9M9n3dE
+2025-09-24 18:33:10,575 [INFO] Detected platform: youtube
+2025-09-24 18:33:10,576 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 18:33:28,139 [INFO] Extracted direct URL: https://rr4---sn-aigl6ns6.googlevideo.com/videoplayback?expire=1758756804&ei=ZCvUaJzvLLW5vdIP2PSByQo...
+2025-09-24 18:33:28,140 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 18:33:28,142 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 18:35:28,194 [WARNING] FFmpeg audio extraction timed out
+2025-09-24 18:35:28,194 [INFO] Proceeding with visual-only analysis
+2025-09-24 18:35:28,195 [INFO] Transcribing youtube audio with Whisper...
+2025-09-24 18:36:13,587 [INFO] Transcript generated successfully (50 characters)
+2025-09-24 18:36:13,588 [INFO] Extracting frames every 30s for youtube...
+2025-09-24 18:37:28,874 [INFO] Extracted 10 frames for youtube analysis
+2025-09-24 18:37:28,874 [INFO] Generating youtube caption for frame_0001.jpg...
+2025-09-24 18:37:32,296 [INFO] Platform-aware caption generated for frame_0001.jpg
+2025-09-24 18:37:32,296 [INFO] Generating youtube caption for frame_0002.jpg...
+2025-09-24 18:37:35,465 [INFO] Platform-aware caption generated for frame_0002.jpg
+2025-09-24 18:37:35,465 [INFO] Generating youtube caption for frame_0003.jpg...
+2025-09-24 18:37:39,176 [INFO] Platform-aware caption generated for frame_0003.jpg
+2025-09-24 18:37:39,176 [INFO] Generating youtube caption for frame_0004.jpg...
+2025-09-24 18:37:40,904 [ERROR] OpenAI API request failed for frame_0004.jpg: Status 429
+2025-09-24 18:37:40,905 [INFO] Generating youtube caption for frame_0005.jpg...
+2025-09-24 18:38:27,067 [INFO] Platform-aware caption generated for frame_0005.jpg
+2025-09-24 18:38:27,067 [INFO] Generating youtube caption for frame_0006.jpg...
+2025-09-24 18:39:12,988 [INFO] Platform-aware caption generated for frame_0006.jpg
+2025-09-24 18:39:12,988 [INFO] Generating youtube caption for frame_0007.jpg...
+2025-09-24 18:39:16,958 [INFO] Platform-aware caption generated for frame_0007.jpg
+2025-09-24 18:39:16,959 [INFO] Generating youtube caption for frame_0008.jpg...
+2025-09-24 18:39:20,857 [INFO] Platform-aware caption generated for frame_0008.jpg
+2025-09-24 18:39:20,857 [INFO] Generating youtube caption for frame_0009.jpg...
+2025-09-24 18:40:04,506 [ERROR] OpenAI API request failed for frame_0009.jpg: Status 429
+2025-09-24 18:40:05,814 [INFO] Generating youtube caption for frame_0010.jpg...
+2025-09-24 18:40:49,360 [ERROR] OpenAI API request failed for frame_0010.jpg: Status 429
+2025-09-24 18:40:50,295 [INFO] Requesting youtube-aware summary from Gemini...
+2025-09-24 18:40:54,938 [INFO] Platform-aware summary generated successfully for youtube
+2025-09-24 18:40:54,952 [INFO] Cleaned up job directory
+2025-09-24 19:11:30,168 [INFO] Starting enhanced FastAPI server for TikTok/Twitter analysis...
+2025-09-24 19:16:47,075 [INFO] Serving homepage
+2025-09-24 19:16:50,503 [INFO] Received video summarization request for https://youtu.be/ZtrVohDts5Q?si=ZyESou2ki9M9n3dE
+2025-09-24 19:16:50,503 [INFO] Extracting direct video URL for: https://youtu.be/ZtrVohDts5Q?si=ZyESou2ki9M9n3dE
+2025-09-24 19:16:50,503 [INFO] Detected platform: youtube
+2025-09-24 19:16:50,504 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 19:16:59,617 [INFO] Extracted direct URL: https://rr4---sn-aigl6ns6.googlevideo.com/videoplayback?expire=1758759417&ei=mTXUaJ65H7b0xN8PhOqo6QY...
+2025-09-24 19:16:59,617 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 19:16:59,619 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 19:17:34,434 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-24 19:17:34,434 [INFO] Transcribing youtube audio with Whisper...
+2025-09-24 19:19:17,375 [INFO] Transcript generated successfully (1023 characters)
+2025-09-24 19:19:17,375 [INFO] Extracting frames every 30s for youtube...
+2025-09-24 19:19:33,006 [INFO] Extracted 10 frames for youtube analysis
+2025-09-24 19:19:33,007 [INFO] Generating youtube caption for frame_0001.jpg...
+2025-09-24 19:19:56,725 [INFO] Platform-aware caption generated for frame_0001.jpg
+2025-09-24 19:19:57,772 [INFO] Generating youtube caption for frame_0002.jpg...
+2025-09-24 19:20:03,993 [INFO] Platform-aware caption generated for frame_0002.jpg
+2025-09-24 19:20:05,313 [INFO] Generating youtube caption for frame_0003.jpg...
+2025-09-24 19:20:21,006 [INFO] Platform-aware caption generated for frame_0003.jpg
+2025-09-24 19:20:22,404 [INFO] Generating youtube caption for frame_0004.jpg...
+2025-09-24 19:20:29,139 [INFO] Platform-aware caption generated for frame_0004.jpg
+2025-09-24 19:20:30,433 [INFO] Generating youtube caption for frame_0005.jpg...
+2025-09-24 19:20:46,463 [INFO] Platform-aware caption generated for frame_0005.jpg
+2025-09-24 19:20:47,855 [INFO] Generating youtube caption for frame_0006.jpg...
+2025-09-24 19:20:54,264 [INFO] Platform-aware caption generated for frame_0006.jpg
+2025-09-24 19:20:55,712 [INFO] Generating youtube caption for frame_0007.jpg...
+2025-09-24 19:21:02,303 [INFO] Platform-aware caption generated for frame_0007.jpg
+2025-09-24 19:21:03,972 [INFO] Generating youtube caption for frame_0008.jpg...
+2025-09-24 19:21:11,052 [INFO] Platform-aware caption generated for frame_0008.jpg
+2025-09-24 19:21:12,232 [INFO] Generating youtube caption for frame_0009.jpg...
+2025-09-24 19:21:18,352 [INFO] Platform-aware caption generated for frame_0009.jpg
+2025-09-24 19:21:19,562 [INFO] Generating youtube caption for frame_0010.jpg...
+2025-09-24 19:21:25,712 [INFO] Platform-aware caption generated for frame_0010.jpg
+2025-09-24 19:21:26,863 [INFO] Requesting youtube-aware summary from Gemini...
+2025-09-24 19:21:31,784 [INFO] Platform-aware summary generated successfully for youtube
+2025-09-24 19:21:31,789 [INFO] Cleaned up job directory
+2025-09-24 19:42:08,203 [INFO] Starting enhanced FastAPI server for TikTok/Twitter analysis...
+2025-09-24 19:42:27,316 [INFO] Serving homepage
+2025-09-24 19:42:35,605 [INFO] Received video summarization request for https://youtu.be/ZtrVohDts5Q?si=ZyESou2ki9M9n3dE
+2025-09-24 19:42:35,606 [INFO] Extracting direct video URL for: https://youtu.be/ZtrVohDts5Q?si=ZyESou2ki9M9n3dE
+2025-09-24 19:42:35,606 [INFO] Detected platform: youtube
+2025-09-24 19:42:35,607 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 19:42:46,025 [INFO] Extracted direct URL: https://rr4---sn-aigl6ns6.googlevideo.com/videoplayback?expire=1758760962&ei=ojvUaP-ZI6S2mLAPjd7EyQQ...
+2025-09-24 19:42:46,028 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 19:42:46,033 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 19:44:46,113 [WARNING] FFmpeg audio extraction timed out
+2025-09-24 19:44:46,114 [INFO] Proceeding with visual-only analysis
+2025-09-24 19:44:46,114 [INFO] Transcribing youtube audio with Whisper...
+2025-09-24 19:51:22,368 [INFO] Starting enhanced FastAPI server for TikTok/Twitter analysis...
+2025-09-24 19:51:52,135 [INFO] Serving homepage
+2025-09-24 19:53:18,894 [INFO] Serving homepage
+2025-09-24 19:55:59,715 [INFO] Serving homepage
+2025-09-24 19:58:43,152 [INFO] Serving homepage
+2025-09-24 20:01:59,365 [INFO] Serving homepage
+2025-09-24 20:02:17,478 [INFO] Received video summarization request for https://youtu.be/ZtrVohDts5Q?si=rAeiMH-sS4mCfTEs
+2025-09-24 20:02:17,504 [INFO] Extracting direct video URL for: https://youtu.be/ZtrVohDts5Q?si=rAeiMH-sS4mCfTEs
+2025-09-24 20:02:17,508 [INFO] Detected platform: youtube
+2025-09-24 20:02:17,511 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 20:02:34,989 [INFO] Extracted direct URL: https://rr4---sn-aigl6ns6.googlevideo.com/videoplayback?expire=1758762146&ei=QUDUaMKUPIjDmLAPpMq8kQo...
+2025-09-24 20:02:35,000 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 20:02:35,027 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 20:03:34,372 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-24 20:03:34,490 [INFO] Transcribing youtube audio with Whisper...
+2025-09-24 20:07:23,822 [INFO] Transcript generated successfully (419 characters)
+2025-09-24 20:07:23,823 [INFO] Extracting frames every 30s for youtube...
+2025-09-24 20:07:46,361 [INFO] Extracted 10 frames for youtube analysis
+2025-09-24 20:07:46,362 [INFO] Generating youtube caption for frame_0001.jpg...
+2025-09-24 20:08:08,591 [ERROR] Error generating caption for frame_0001.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:08:08,591 [INFO] Generating youtube caption for frame_0002.jpg...
+2025-09-24 20:08:29,981 [ERROR] Error generating caption for frame_0002.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:08:29,981 [INFO] Generating youtube caption for frame_0003.jpg...
+2025-09-24 20:08:51,337 [ERROR] Error generating caption for frame_0003.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:08:51,337 [INFO] Generating youtube caption for frame_0004.jpg...
+2025-09-24 20:09:12,703 [ERROR] Error generating caption for frame_0004.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:09:12,703 [INFO] Generating youtube caption for frame_0005.jpg...
+2025-09-24 20:09:34,408 [ERROR] Error generating caption for frame_0005.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:09:34,409 [INFO] Generating youtube caption for frame_0006.jpg...
+2025-09-24 20:09:55,884 [ERROR] Error generating caption for frame_0006.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:09:55,885 [INFO] Generating youtube caption for frame_0007.jpg...
+2025-09-24 20:10:17,812 [ERROR] Error generating caption for frame_0007.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:10:17,812 [INFO] Generating youtube caption for frame_0008.jpg...
+2025-09-24 20:10:39,236 [ERROR] Error generating caption for frame_0008.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:10:39,237 [INFO] Generating youtube caption for frame_0009.jpg...
+2025-09-24 20:11:00,833 [ERROR] Error generating caption for frame_0009.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:11:00,840 [INFO] Generating youtube caption for frame_0010.jpg...
+2025-09-24 20:11:22,899 [ERROR] Error generating caption for frame_0010.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:11:22,900 [INFO] Requesting youtube-aware summary from Gemini...
+2025-09-24 20:11:25,996 [INFO] Platform-aware summary generated successfully for youtube
+2025-09-24 20:11:26,001 [INFO] Cleaned up job directory
+2025-09-24 20:12:17,558 [INFO] Received video summarization request for https://youtu.be/ZtrVohDts5Q?si=rAeiMH-sS4mCfTEs
+2025-09-24 20:12:17,558 [INFO] Extracting direct video URL for: https://youtu.be/ZtrVohDts5Q?si=rAeiMH-sS4mCfTEs
+2025-09-24 20:12:17,558 [INFO] Detected platform: youtube
+2025-09-24 20:12:17,559 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 20:12:26,259 [INFO] Extracted direct URL: https://rr4---sn-aigl6ns6.googlevideo.com/videoplayback?expire=1758762742&ei=lkLUaLeyG9P3xN8Pwt7fyAI...
+2025-09-24 20:12:26,260 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 20:12:26,261 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 20:12:58,117 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-24 20:12:58,118 [INFO] Transcribing youtube audio with Whisper...
+2025-09-24 20:14:24,179 [INFO] Transcript generated successfully (456 characters)
+2025-09-24 20:14:24,179 [INFO] Extracting frames every 30s for youtube...
+2025-09-24 20:14:40,812 [INFO] Extracted 10 frames for youtube analysis
+2025-09-24 20:14:40,813 [INFO] Generating youtube caption for frame_0001.jpg...
+2025-09-24 20:15:02,650 [ERROR] Error generating caption for frame_0001.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:15:02,651 [INFO] Generating youtube caption for frame_0002.jpg...
+2025-09-24 20:15:24,085 [ERROR] Error generating caption for frame_0002.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:15:24,086 [INFO] Generating youtube caption for frame_0003.jpg...
+2025-09-24 20:15:45,865 [ERROR] Error generating caption for frame_0003.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:15:45,865 [INFO] Generating youtube caption for frame_0004.jpg...
+2025-09-24 20:16:08,455 [ERROR] Error generating caption for frame_0004.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:16:08,456 [INFO] Generating youtube caption for frame_0005.jpg...
+2025-09-24 20:16:29,836 [ERROR] Error generating caption for frame_0005.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:16:29,837 [INFO] Generating youtube caption for frame_0006.jpg...
+2025-09-24 20:16:51,203 [ERROR] Error generating caption for frame_0006.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:16:51,203 [INFO] Generating youtube caption for frame_0007.jpg...
+2025-09-24 20:17:12,575 [ERROR] Error generating caption for frame_0007.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:17:12,576 [INFO] Generating youtube caption for frame_0008.jpg...
+2025-09-24 20:17:33,943 [ERROR] Error generating caption for frame_0008.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:17:33,944 [INFO] Generating youtube caption for frame_0009.jpg...
+2025-09-24 20:17:55,365 [ERROR] Error generating caption for frame_0009.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:17:55,365 [INFO] Generating youtube caption for frame_0010.jpg...
+2025-09-24 20:18:16,835 [ERROR] Error generating caption for frame_0010.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:18:16,835 [INFO] Requesting youtube-aware summary from Gemini...
+2025-09-24 20:18:20,559 [INFO] Platform-aware summary generated successfully for youtube
+2025-09-24 20:18:20,570 [INFO] Cleaned up job directory
+2025-09-24 20:18:31,271 [INFO] Received video summarization request for https://youtu.be/lowGeZAGxjU?si=Ksp-vHM85gf8rqud
+2025-09-24 20:18:31,272 [INFO] Extracting direct video URL for: https://youtu.be/lowGeZAGxjU?si=Ksp-vHM85gf8rqud
+2025-09-24 20:18:31,272 [INFO] Detected platform: youtube
+2025-09-24 20:18:31,272 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 20:18:40,449 [INFO] Extracted direct URL: https://rr2---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1758763116&ei=DETUaKqrEaKczPsPhtnN0Qs...
+2025-09-24 20:18:40,450 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 20:18:40,452 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 20:19:57,159 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-24 20:19:57,160 [INFO] Transcribing youtube audio with Whisper...
+2025-09-24 20:21:49,087 [INFO] Transcript generated successfully (1463 characters)
+2025-09-24 20:21:49,089 [INFO] Extracting frames every 30s for youtube...
+2025-09-24 20:22:36,294 [INFO] Extracted 10 frames for youtube analysis
+2025-09-24 20:22:36,295 [INFO] Generating youtube caption for frame_0001.jpg...
+2025-09-24 20:22:57,903 [ERROR] Error generating caption for frame_0001.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:22:57,903 [INFO] Generating youtube caption for frame_0002.jpg...
+2025-09-24 20:23:19,337 [ERROR] Error generating caption for frame_0002.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:23:19,338 [INFO] Generating youtube caption for frame_0003.jpg...
+2025-09-24 20:23:41,492 [ERROR] Error generating caption for frame_0003.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:23:41,493 [INFO] Generating youtube caption for frame_0004.jpg...
+2025-09-24 20:24:03,239 [ERROR] Error generating caption for frame_0004.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:24:03,240 [INFO] Generating youtube caption for frame_0005.jpg...
+2025-09-24 20:24:24,790 [ERROR] Error generating caption for frame_0005.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:24:24,791 [INFO] Generating youtube caption for frame_0006.jpg...
+2025-09-24 20:24:46,337 [ERROR] Error generating caption for frame_0006.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:24:46,338 [INFO] Generating youtube caption for frame_0007.jpg...
+2025-09-24 20:25:07,780 [ERROR] Error generating caption for frame_0007.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:25:07,781 [INFO] Generating youtube caption for frame_0008.jpg...
+2025-09-24 20:25:29,313 [ERROR] Error generating caption for frame_0008.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:25:29,313 [INFO] Generating youtube caption for frame_0009.jpg...
+2025-09-24 20:25:51,564 [ERROR] Error generating caption for frame_0009.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:25:51,565 [INFO] Generating youtube caption for frame_0010.jpg...
+2025-09-24 20:26:12,969 [ERROR] Error generating caption for frame_0010.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:26:12,972 [INFO] Requesting youtube-aware summary from Gemini...
+2025-09-24 20:26:18,112 [INFO] Platform-aware summary generated successfully for youtube
+2025-09-24 20:26:18,122 [INFO] Cleaned up job directory
+2025-09-24 20:28:14,334 [INFO] Starting enhanced FastAPI server for TikTok/Twitter analysis...
+2025-09-24 20:29:53,634 [INFO] Serving homepage
+2025-09-24 20:30:07,603 [INFO] Received video summarization request for https://youtu.be/lowGeZAGxjU?si=Ksp-vHM85gf8rqud
+2025-09-24 20:30:07,604 [INFO] Extracting direct video URL for: https://youtu.be/lowGeZAGxjU?si=Ksp-vHM85gf8rqud
+2025-09-24 20:30:07,604 [INFO] Detected platform: youtube
+2025-09-24 20:30:07,604 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 20:30:21,479 [INFO] Extracted direct URL: https://rr2---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1758763814&ei=xkbUaKriGLONp-oP3qCMgAQ...
+2025-09-24 20:30:21,479 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 20:30:21,481 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 20:31:17,501 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-24 20:31:17,502 [INFO] Transcribing youtube audio with Whisper...
+2025-09-24 20:34:26,150 [INFO] Transcript generated successfully (1463 characters)
+2025-09-24 20:34:26,151 [INFO] Extracting frames every 30s for youtube...
+2025-09-24 20:34:42,681 [INFO] Extracted 10 frames for youtube analysis
+2025-09-24 20:34:42,682 [INFO] Generating youtube caption for frame_0001.jpg...
+2025-09-24 20:35:05,136 [ERROR] Error generating caption for frame_0001.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:35:05,138 [INFO] Generating youtube caption for frame_0002.jpg...
+2025-09-24 20:35:27,171 [ERROR] Error generating caption for frame_0002.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:35:27,172 [INFO] Generating youtube caption for frame_0003.jpg...
+2025-09-24 20:35:48,906 [ERROR] Error generating caption for frame_0003.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:35:48,906 [INFO] Generating youtube caption for frame_0004.jpg...
+2025-09-24 20:36:10,485 [ERROR] Error generating caption for frame_0004.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:36:10,485 [INFO] Generating youtube caption for frame_0005.jpg...
+2025-09-24 20:36:32,064 [ERROR] Error generating caption for frame_0005.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:36:32,065 [INFO] Generating youtube caption for frame_0006.jpg...
+2025-09-24 20:36:53,627 [ERROR] Error generating caption for frame_0006.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:36:53,627 [INFO] Generating youtube caption for frame_0007.jpg...
+2025-09-24 20:37:15,299 [ERROR] Error generating caption for frame_0007.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:37:15,303 [INFO] Generating youtube caption for frame_0008.jpg...
+2025-09-24 20:37:38,053 [ERROR] Error generating caption for frame_0008.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:37:38,054 [INFO] Generating youtube caption for frame_0009.jpg...
+2025-09-24 20:38:00,324 [ERROR] Error generating caption for frame_0009.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:38:00,324 [INFO] Generating youtube caption for frame_0010.jpg...
+2025-09-24 20:38:21,997 [ERROR] Error generating caption for frame_0010.jpg: [WinError 10060] A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond
+2025-09-24 20:38:21,998 [INFO] Requesting youtube-aware summary from Gemini...
+2025-09-24 20:38:32,731 [INFO] Platform-aware summary generated successfully for youtube
+2025-09-24 20:38:32,738 [INFO] Cleaned up job directory
+2025-09-24 20:46:15,281 [INFO] Starting enhanced FastAPI server for TikTok/Twitter analysis...
+2025-09-24 20:46:29,404 [INFO] Serving homepage
+2025-09-24 20:46:33,704 [INFO] Received video summarization request for https://youtu.be/lowGeZAGxjU?si=Ksp-vHM85gf8rqud
+2025-09-24 20:46:33,704 [INFO] Extracting direct video URL for: https://youtu.be/lowGeZAGxjU?si=Ksp-vHM85gf8rqud
+2025-09-24 20:46:33,704 [INFO] Detected platform: youtube
+2025-09-24 20:46:33,705 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 20:46:42,847 [INFO] Extracted direct URL: https://rr2---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1758764798&ei=nUrUaNyLPO6QuuYPmZqNwQU...
+2025-09-24 20:46:42,847 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 20:46:42,848 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 20:48:01,659 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-24 20:48:01,660 [INFO] Transcribing youtube audio with Whisper...
+2025-09-24 20:50:10,508 [INFO] Transcript generated successfully (1463 characters)
+2025-09-24 20:50:10,509 [INFO] Extracting frames every 30s for youtube...
+2025-09-24 20:50:40,836 [INFO] Extracted 10 frames for youtube analysis
+2025-09-24 20:50:40,836 [INFO] Generating youtube caption for frame_0001.jpg...
+2025-09-24 20:51:12,040 [INFO] Platform-aware caption generated for frame_0001.jpg
+2025-09-24 20:51:12,041 [INFO] Generating youtube caption for frame_0002.jpg...
+2025-09-24 20:51:17,107 [INFO] Platform-aware caption generated for frame_0002.jpg
+2025-09-24 20:51:17,107 [INFO] Generating youtube caption for frame_0003.jpg...
+2025-09-24 20:51:21,105 [INFO] Platform-aware caption generated for frame_0003.jpg
+2025-09-24 20:51:21,105 [INFO] Generating youtube caption for frame_0004.jpg...
+2025-09-24 20:51:26,876 [INFO] Platform-aware caption generated for frame_0004.jpg
+2025-09-24 20:51:26,877 [INFO] Generating youtube caption for frame_0005.jpg...
+2025-09-24 20:51:45,997 [INFO] Platform-aware caption generated for frame_0005.jpg
+2025-09-24 20:51:45,997 [INFO] Generating youtube caption for frame_0006.jpg...
+2025-09-24 20:52:01,035 [INFO] Platform-aware caption generated for frame_0006.jpg
+2025-09-24 20:52:01,035 [INFO] Generating youtube caption for frame_0007.jpg...
+2025-09-24 20:52:07,989 [INFO] Platform-aware caption generated for frame_0007.jpg
+2025-09-24 20:52:07,990 [INFO] Generating youtube caption for frame_0008.jpg...
+2025-09-24 20:52:40,677 [INFO] Platform-aware caption generated for frame_0008.jpg
+2025-09-24 20:52:40,678 [INFO] Generating youtube caption for frame_0009.jpg...
+2025-09-24 20:52:42,466 [INFO] Platform-aware caption generated for frame_0009.jpg
+2025-09-24 20:52:42,466 [INFO] Generating youtube caption for frame_0010.jpg...
+2025-09-24 20:52:45,556 [INFO] Platform-aware caption generated for frame_0010.jpg
+2025-09-24 20:52:45,557 [INFO] Requesting youtube-aware summary from Gemini...
+2025-09-24 20:52:51,380 [INFO] Platform-aware summary generated successfully for youtube
+2025-09-24 20:52:51,385 [INFO] Cleaned up job directory
+2025-09-24 21:07:30,099 [INFO] Starting enhanced FastAPI server for TikTok/Twitter analysis...
+2025-09-24 21:08:16,859 [INFO] Serving homepage
+2025-09-24 21:08:20,219 [INFO] Received video summarization request for https://youtu.be/lowGeZAGxjU?si=Ksp-vHM85gf8rqud
+2025-09-24 21:08:20,220 [INFO] Extracting direct video URL for: https://youtu.be/lowGeZAGxjU?si=Ksp-vHM85gf8rqud
+2025-09-24 21:08:20,220 [INFO] Detected platform: youtube
+2025-09-24 21:08:20,220 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 21:08:27,339 [INFO] Extracted direct URL: https://rr2---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1758766104&ei=uE_UaK-QD8vazPsP2uS7yAg...
+2025-09-24 21:08:27,340 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 21:08:27,342 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 21:10:27,390 [WARNING] FFmpeg audio extraction timed out
+2025-09-24 21:10:27,390 [INFO] Proceeding with visual-only analysis
+2025-09-24 21:10:27,391 [INFO] Transcribing youtube audio with Whisper...
+2025-09-24 21:11:14,461 [INFO] Transcript generated successfully (1059 characters)
+2025-09-24 21:11:14,462 [INFO] Extracting frames every 30s for youtube...
+2025-09-24 21:11:53,162 [INFO] Extracted 10 frames for youtube analysis
+2025-09-24 21:11:53,162 [INFO] Generating youtube caption for frame_0001.jpg...
+2025-09-24 21:11:56,463 [INFO] Platform-aware caption generated for frame_0001.jpg
+2025-09-24 21:11:56,463 [INFO] Generating youtube caption for frame_0002.jpg...
+2025-09-24 21:11:58,123 [INFO] Platform-aware caption generated for frame_0002.jpg
+2025-09-24 21:11:58,124 [INFO] Generating youtube caption for frame_0003.jpg...
+2025-09-24 21:12:00,466 [INFO] Platform-aware caption generated for frame_0003.jpg
+2025-09-24 21:12:00,467 [INFO] Generating youtube caption for frame_0004.jpg...
+2025-09-24 21:12:02,256 [INFO] Platform-aware caption generated for frame_0004.jpg
+2025-09-24 21:12:02,256 [INFO] Generating youtube caption for frame_0005.jpg...
+2025-09-24 21:12:04,298 [INFO] Platform-aware caption generated for frame_0005.jpg
+2025-09-24 21:12:04,299 [INFO] Generating youtube caption for frame_0006.jpg...
+2025-09-24 21:12:06,164 [INFO] Platform-aware caption generated for frame_0006.jpg
+2025-09-24 21:12:06,165 [INFO] Generating youtube caption for frame_0007.jpg...
+2025-09-24 21:12:08,016 [INFO] Platform-aware caption generated for frame_0007.jpg
+2025-09-24 21:12:08,016 [INFO] Generating youtube caption for frame_0008.jpg...
+2025-09-24 21:12:09,547 [INFO] Platform-aware caption generated for frame_0008.jpg
+2025-09-24 21:12:09,547 [INFO] Generating youtube caption for frame_0009.jpg...
+2025-09-24 21:12:11,477 [INFO] Platform-aware caption generated for frame_0009.jpg
+2025-09-24 21:12:11,477 [INFO] Generating youtube caption for frame_0010.jpg...
+2025-09-24 21:12:13,065 [INFO] Platform-aware caption generated for frame_0010.jpg
+2025-09-24 21:12:13,066 [INFO] Requesting youtube-aware summary from Gemini...
+2025-09-24 21:12:17,905 [INFO] Platform-aware summary generated successfully for youtube
+2025-09-24 21:12:17,910 [INFO] Cleaned up job directory
+2025-09-24 22:28:08,432 [INFO] Starting enhanced FastAPI server with OpenAI Vision for frame analysis...
+2025-09-24 22:28:46,627 [INFO] Received video summarization request for https://youtu.be/lowGeZAGxjU?si=Ksp-vHM85gf8rqud
+2025-09-24 22:28:46,628 [INFO] Extracting direct video URL for: https://youtu.be/lowGeZAGxjU?si=Ksp-vHM85gf8rqud
+2025-09-24 22:28:46,628 [INFO] Detected platform: youtube
+2025-09-24 22:28:46,629 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 22:28:55,628 [INFO] Extracted direct URL: https://rr2---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1758770932&ei=lGLUaImtHpugvdIPiNW3gQc...
+2025-09-24 22:28:55,628 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 22:28:55,630 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 22:29:55,066 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-24 22:29:55,066 [INFO] Transcribing youtube audio with Whisper...
+2025-09-24 22:31:25,107 [INFO] Transcript generated successfully (1463 characters)
+2025-09-24 22:31:25,108 [INFO] Extracting frames every 30s for youtube...
+2025-09-24 22:31:52,030 [INFO] Extracted 10 frames for youtube analysis
+2025-09-24 22:31:52,030 [INFO] Generating frame captions with OpenAI Vision API...
+2025-09-24 22:31:52,033 [INFO] Sending all 10 frames to OpenAI Vision API in single call...
+2025-09-24 22:32:02,678 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-24 22:32:02,701 [INFO] Generated 10 frame captions in single API call
+2025-09-24 22:32:02,702 [INFO] Generated 10 frame captions with OpenAI
+2025-09-24 22:32:02,706 [INFO] Requesting youtube-aware summary from Gemini...
+2025-09-24 22:32:08,678 [INFO] Platform-aware summary generated successfully for youtube
+2025-09-24 22:32:08,683 [INFO] Cleaned up job directory
+2025-09-24 22:56:35,807 [INFO] Starting enhanced FastAPI server with OpenAI Vision for frame analysis...
+2025-09-24 22:56:40,853 [INFO] Serving homepage
+2025-09-24 22:58:59,326 [INFO] Received video summarization request for https://youtu.be/LXrqcZ9SAt0?si=Mfr09ObIgDo3Rlw4
+2025-09-24 22:58:59,326 [INFO] Extracting direct video URL for: https://youtu.be/LXrqcZ9SAt0?si=Mfr09ObIgDo3Rlw4
+2025-09-24 22:58:59,326 [INFO] Detected platform: youtube
+2025-09-24 22:58:59,327 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-24 22:59:17,670 [INFO] Extracted direct URL: https://rr3---sn-aigzrnze.googlevideo.com/videoplayback?expire=1758772748&ei=rGnUaKfcAsj7xs0P14i9gAI...
+2025-09-24 22:59:17,670 [INFO] Using analysis settings for youtube: {'max_duration': 1800, 'frame_interval': 30, 'max_frames': 10, 'audio_priority': True, 'fps_filter': 'fps=1/30'}
+2025-09-24 22:59:17,677 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-24 22:59:39,012 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-24 22:59:39,012 [INFO] Transcribing youtube audio with Whisper...
+2025-09-24 23:02:40,124 [INFO] Transcript generated successfully (348 characters)
+2025-09-24 23:02:40,125 [INFO] Extracting frames every 30s for youtube...
+2025-09-24 23:02:58,639 [INFO] Extracted 10 frames for youtube analysis
+2025-09-24 23:02:58,640 [INFO] Generating frame captions with OpenAI Vision API...
+2025-09-24 23:02:58,644 [INFO] Sending all 10 frames to OpenAI Vision API in single call...
+2025-09-24 23:03:08,886 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-24 23:03:08,899 [INFO] Generated 10 frame captions in single API call
+2025-09-24 23:03:08,899 [INFO] Generated 10 frame captions with OpenAI
+2025-09-24 23:03:08,900 [INFO] Requesting youtube-aware summary from Gemini...
+2025-09-24 23:03:13,815 [INFO] Platform-aware summary generated successfully for youtube
+2025-09-24 23:03:13,819 [INFO] Cleaned up job directory
+2025-09-25 12:17:25,813 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-25 12:18:07,326 [INFO] Serving homepage
+2025-09-25 12:18:14,248 [INFO] Received video summarization request for https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-25 12:18:14,249 [INFO] Extracting direct video URL for: https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-25 12:18:14,249 [INFO] Detected platform: youtube
+2025-09-25 12:18:14,250 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-25 12:18:23,441 [INFO] Extracted direct URL: https://rr1---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1758820700&ei=_CTVaN-pD6ilzPsPr-DBwQU...
+2025-09-25 12:18:27,260 [INFO] Video duration: 299.7 seconds
+2025-09-25 12:18:27,261 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-25 12:18:27,262 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-25 12:18:34,971 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-25 12:18:34,973 [INFO] Transcribing youtube audio with Whisper...
+2025-09-25 12:20:09,771 [INFO] Transcript generated successfully (4370 characters)
+2025-09-25 12:20:09,772 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-25 12:20:17,275 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.05005005756507371, 'duration': 299.699955}
+2025-09-25 12:20:17,278 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-25 12:20:17,283 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-25 12:20:17,341 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-25 12:20:45,886 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-25 12:20:45,947 [INFO] Generated 22 frame captions in single API call
+2025-09-25 12:20:45,950 [INFO] Generated 22 enhanced frame captions
+2025-09-25 12:20:45,951 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-25 12:20:53,100 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-25 12:20:53,131 [INFO] Cleaned up job directory
+2025-09-25 12:48:47,749 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-25 12:48:51,756 [INFO] Serving homepage
+2025-09-25 12:50:44,622 [INFO] Serving homepage
+2025-09-25 12:51:01,824 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-25 12:52:26,572 [INFO] Serving homepage

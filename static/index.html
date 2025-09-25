@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Summarizer</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(20, 20, 40, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #e8e8e8;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        .url-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #374151;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #1f2937;
+            color: #e5e7eb;
+        }
+
+        .url-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .url-input:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            text-align: center;
+            margin: 30px 0;
+            color: #8b5cf6;
+            font-size: 18px;
+        }
+
+        .spinner {
+            border: 3px solid #374151;
+            border-top: 3px solid #8b5cf6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .summary-card {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #1f2937, #111827);
+            border-radius: 15px;
+            border-left: 5px solid #8b5cf6;
+            animation: slideIn 0.5s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .summary-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #e5e7eb;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .summary-title::before {
+            content: "🤖";
+            margin-right: 10px;
+            font-size: 24px;
+        }
+
+        .summary-text {
+            line-height: 1.7;
+            color: #d1d5db;
+            font-size: 16px;
+            white-space: pre-wrap;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #2d1b1b, #1f1515);
+            border-left-color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .error .summary-title {
+            color: #fca5a5;
+        }
+
+        .error .summary-text {
+            color: #fca5a5;
+        }
+
+        .example-urls {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 10px;
+            border: 1px dashed #8b5cf6;
+        }
+
+        .example-title {
+            font-weight: 600;
+            color: #8b5cf6;
+            margin-bottom: 10px;
+        }
+
+        .example-url {
+            display: block;
+            color: #9ca3af;
+            font-size: 14px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .example-url:hover {
+            color: #06b6d4;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        function VideoSummarizer() {
+            const [url, setUrl] = useState("");
+            const [summary, setSummary] = useState("");
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState("");
+
+            const handleSummarize = async () => {
+                if (!url.trim()) {
+                    setError("Please enter a video URL");
+                    return;
+                }
+
+                setLoading(true);
+                setError("");
+                setSummary("");
+
+                try {
+                    const res = await fetch("/summarize_video", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ video_url: url.trim() })
+                    });
+
+                    if (!res.ok) {
+                        const errorData = await res.json();
+                        throw new Error(errorData.detail || `HTTP ${res.status}`);
+                    }
+
+                    const data = await res.json();
+                    setSummary(data.summary);
+                } catch (err) {
+                    setError(`Failed to summarize video: ${err.message}`);
+                    console.error("Error:", err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter' && !loading) {
+                    handleSummarize();
+                }
+            };
+
+            const useExampleUrl = (exampleUrl) => {
+                setUrl(exampleUrl);
+            };
+
+            return (
+                <div className="container">
+                    <h1>🎬 AI Video Summarizer</h1>
+                    
+                    <div className="input-group">
+                        <input
+                            type="text"
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            placeholder="Paste your video URL here (YouTube, Vimeo, direct MP4, etc.)"
+                            className="url-input"
+                        />
+                        
+                        <button 
+                            onClick={handleSummarize} 
+                            disabled={loading}
+                            className="submit-btn"
+                        >
+                            {loading ? "🧠 Analyzing Video, Depending on video length this may take 3 minutes..." : "🚀 Summarize Video"}
+                        </button>
+                    </div>
+
+                    <div className="example-urls">
+                        <div className="example-title">💡 Example URLs you can try:</div>
+                        <span 
+                            className="example-url"
+                            onClick={() => useExampleUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")}
+                        >
+                            • YouTube: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+                        </span>
+                        <span 
+                            className="example-url"
+                            onClick={() => useExampleUrl("https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4")}
+                        >
+                            • Direct MP4: https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4
+                        </span>
+                    </div>
+
+                    {loading && (
+                        <div className="loading">
+                            <div className="spinner"></div>
+                            <p>Processing your video... This may take a few minutes</p>
+                            <p style={{fontSize: "14px", opacity: "0.7", marginTop: "10px"}}>
+                                Extracting audio → Transcribing → Analyzing frames → Generating summary
+                            </p>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="summary-card error">
+                            <div className="summary-title">❌ Error</div>
+                            <div className="summary-text">{error}</div>
+                        </div>
+                    )}
+
+                    {summary && (
+                        <div className="summary-card">
+                            <div className="summary-title">AI Generated Summary</div>
+                            <div className="summary-text">{summary}</div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<VideoSummarizer />, document.getElementById('root'));
+    </script>
+</body>
+</html>
