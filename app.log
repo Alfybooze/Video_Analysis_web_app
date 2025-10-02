@@ -1681,3 +1681,573 @@ fastapi.exceptions.HTTPException: 408: Frame extraction timed out
 2025-09-25 12:50:44,622 [INFO] Serving homepage
 2025-09-25 12:51:01,824 [INFO] Starting enhanced FastAPI server with improved visual analysis...
 2025-09-25 12:52:26,572 [INFO] Serving homepage
+2025-09-29 08:36:17,998 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-29 08:46:05,460 [INFO] Serving homepage
+2025-09-29 08:46:33,522 [INFO] Received video summarization request for https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 08:46:33,522 [INFO] Extracting direct video URL for: https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 08:46:33,522 [INFO] Detected platform: youtube
+2025-09-29 08:46:33,523 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 08:46:54,627 [INFO] Extracted direct URL: https://rr1---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1759153603&ei=YznaaOO3OufOp-oPtvSTkAw...
+2025-09-29 08:46:57,649 [INFO] Video duration: 299.7 seconds
+2025-09-29 08:46:57,649 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 08:46:57,653 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 08:48:57,783 [WARNING] FFmpeg audio extraction timed out
+2025-09-29 08:48:57,783 [INFO] Proceeding with visual-only analysis
+2025-09-29 08:48:57,784 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 08:49:50,499 [INFO] Transcript generated successfully (3011 characters)
+2025-09-29 08:49:50,500 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 08:50:26,060 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.05005781427259413, 'duration': 299.653515}
+2025-09-29 08:50:26,061 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 08:50:26,061 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 08:50:26,072 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 08:50:59,282 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-29 08:50:59,324 [INFO] Generated 16 frame captions in single API call
+2025-09-29 08:50:59,327 [INFO] Generated 16 enhanced frame captions
+2025-09-29 08:50:59,328 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 08:51:00,610 [ERROR] Gemini summary generation failed: 404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2025-09-29 08:51:00,610 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 632, in summarize_video
+    response = model.generate_content(combined_context)
+  File "C:\Users\NEPC\Desktop\Video_analytics\myvenv\Lib\site-packages\google\generativeai\generative_models.py", line 331, in generate_content
+    response = self._client.generate_content(
+        request,
+        **request_options,
+    )
+  File "C:\Users\NEPC\Desktop\Video_analytics\myvenv\Lib\site-packages\google\ai\generativelanguage_v1beta\services\generative_service\client.py", line 835, in generate_content
+    response = rpc(
+        request,
+    ...<2 lines>...
+        metadata=metadata,
+    )
+  File "C:\Users\NEPC\Desktop\Video_analytics\myvenv\Lib\site-packages\google\api_core\gapic_v1\method.py", line 131, in __call__
+    return wrapped_func(*args, **kwargs)
+  File "C:\Users\NEPC\Desktop\Video_analytics\myvenv\Lib\site-packages\google\api_core\retry\retry_unary.py", line 294, in retry_wrapped_func
+    return retry_target(
+        target,
+    ...<3 lines>...
+        on_error=on_error,
+    )
+  File "C:\Users\NEPC\Desktop\Video_analytics\myvenv\Lib\site-packages\google\api_core\retry\retry_unary.py", line 156, in retry_target
+    next_sleep = _retry_error_helper(
+        exc,
+    ...<6 lines>...
+        timeout,
+    )
+  File "C:\Users\NEPC\Desktop\Video_analytics\myvenv\Lib\site-packages\google\api_core\retry\retry_base.py", line 214, in _retry_error_helper
+    raise final_exc from source_exc
+  File "C:\Users\NEPC\Desktop\Video_analytics\myvenv\Lib\site-packages\google\api_core\retry\retry_unary.py", line 147, in retry_target
+    result = target()
+  File "C:\Users\NEPC\Desktop\Video_analytics\myvenv\Lib\site-packages\google\api_core\timeout.py", line 130, in func_with_timeout
+    return func(*args, **kwargs)
+  File "C:\Users\NEPC\Desktop\Video_analytics\myvenv\Lib\site-packages\google\api_core\grpc_helpers.py", line 78, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.NotFound: 404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 638, in summarize_video
+    raise HTTPException(status_code=500, detail=f"Failed to generate summary: {str(e)}")
+fastapi.exceptions.HTTPException: 500: Failed to generate summary: 404 models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2025-09-29 09:04:40,226 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-29 09:05:18,127 [INFO] Serving homepage
+2025-09-29 09:05:32,240 [INFO] Received video summarization request for https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 09:05:32,241 [INFO] Extracting direct video URL for: https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 09:05:32,241 [INFO] Detected platform: youtube
+2025-09-29 09:05:32,241 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 09:05:41,889 [INFO] Extracted direct URL: https://rr1---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1759154739&ei=0z3aaMqgCtC9mLAPvuOx8Qk...
+2025-09-29 09:05:43,559 [INFO] Video duration: 299.7 seconds
+2025-09-29 09:05:43,561 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 09:05:43,568 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 09:05:49,616 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 09:05:49,617 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 09:07:34,787 [INFO] Transcript generated successfully (4376 characters)
+2025-09-29 09:07:34,788 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 09:07:40,858 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.05005781427259413, 'duration': 299.653515}
+2025-09-29 09:07:40,859 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 09:07:40,859 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 09:07:40,887 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 09:08:01,078 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-29 09:08:01,101 [INFO] Generated 18 frame captions in single API call
+2025-09-29 09:08:01,102 [INFO] Generated 18 enhanced frame captions
+2025-09-29 09:08:01,102 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 09:08:13,642 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 09:08:13,649 [INFO] Cleaned up job directory
+2025-09-29 09:21:34,556 [INFO] Serving homepage
+2025-09-29 09:22:05,327 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-29 09:27:03,367 [INFO] Received video summarization request for https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 09:27:03,369 [INFO] Extracting direct video URL for: https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 09:27:03,369 [INFO] Detected platform: youtube
+2025-09-29 09:27:03,369 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 09:27:11,253 [INFO] Extracted direct URL: https://rr1---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1759156028&ei=3ELaaN6sLMzXxN8PkcuJuA8...
+2025-09-29 09:27:13,118 [INFO] Video duration: 299.7 seconds
+2025-09-29 09:27:13,119 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 09:27:13,120 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 09:27:18,336 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 09:27:18,337 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 09:28:48,552 [INFO] Transcript generated successfully (4376 characters)
+2025-09-29 09:28:48,552 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 09:28:54,052 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.05005781427259413, 'duration': 299.653515}
+2025-09-29 09:28:54,053 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 09:28:54,053 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 09:28:54,075 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 09:28:59,523 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 09:28:59,524 [INFO] Retrying request to /chat/completions in 0.413367 seconds
+2025-09-29 09:29:14,523 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-29 09:29:14,559 [INFO] Generated 18 frame captions in single API call
+2025-09-29 09:29:14,561 [INFO] Generated 18 enhanced frame captions
+2025-09-29 09:29:14,565 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 09:29:27,999 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 09:29:28,016 [INFO] Cleaned up job directory
+2025-09-29 09:33:45,497 [INFO] Serving homepage
+2025-09-29 09:34:14,244 [INFO] Received video summarization request for https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 09:34:14,245 [INFO] Extracting direct video URL for: https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 09:34:14,245 [INFO] Detected platform: youtube
+2025-09-29 09:34:14,245 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 09:34:22,395 [INFO] Extracted direct URL: https://rr1---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1759156459&ei=i0TaaNaJGu_3xN8P2bHeiAc...
+2025-09-29 09:34:24,825 [INFO] Video duration: 299.7 seconds
+2025-09-29 09:34:24,825 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 09:34:24,827 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 09:34:30,577 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 09:34:30,578 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 09:35:55,596 [INFO] Transcript generated successfully (4376 characters)
+2025-09-29 09:35:55,596 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 09:36:03,614 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.05005781427259413, 'duration': 299.653515}
+2025-09-29 09:36:03,615 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 09:36:03,615 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 09:36:03,651 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 09:36:07,468 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 09:36:07,469 [INFO] Retrying request to /chat/completions in 0.395950 seconds
+2025-09-29 09:36:10,417 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 09:36:10,418 [INFO] Retrying request to /chat/completions in 0.821634 seconds
+2025-09-29 09:36:15,648 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 09:36:15,649 [ERROR] Error generating captions: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o-mini in organization org-zr8NPlt2ct27RJZDXDTSj8qt on tokens per min (TPM): Limit 100000, Used 100000, Requested 11706. Please try again in 84h16m59.52s. Visit https://platform.openai.com/account/rate-limits to learn more. You can increase your rate limit by adding a payment method to your account at https://platform.openai.com/account/billing.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+2025-09-29 09:36:15,650 [INFO] Generated 15 enhanced frame captions
+2025-09-29 09:36:15,650 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 09:36:25,396 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 09:36:25,414 [INFO] Cleaned up job directory
+2025-09-29 10:08:08,371 [INFO] Serving homepage
+2025-09-29 10:09:04,221 [INFO] Serving homepage
+2025-09-29 10:11:38,386 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 10:11:38,386 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 10:11:38,388 [INFO] Detected platform: youtube
+2025-09-29 10:11:38,391 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 10:11:45,699 [INFO] Extracted direct URL: https://rr2---sn-aigl6nsd.googlevideo.com/videoplayback?expire=1759158702&ei=Tk3aaMP9H9PlxN8PwtTokAc...
+2025-09-29 10:11:47,124 [INFO] Video duration: 563.9 seconds
+2025-09-29 10:11:47,124 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 10:11:47,126 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 10:12:07,227 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 10:12:07,228 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 10:14:03,599 [INFO] Transcript generated successfully (10074 characters)
+2025-09-29 10:14:03,599 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 10:14:20,026 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.02660281239718512, 'duration': 563.850159}
+2025-09-29 10:14:20,026 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 10:14:20,026 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 10:14:20,050 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 10:14:33,907 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 10:14:33,910 [INFO] Retrying request to /chat/completions in 0.460620 seconds
+2025-09-29 10:14:36,313 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 10:14:36,316 [INFO] Retrying request to /chat/completions in 0.778455 seconds
+2025-09-29 10:14:39,037 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 10:14:39,042 [ERROR] Error generating captions: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o-mini in organization org-zr8NPlt2ct27RJZDXDTSj8qt on tokens per min (TPM): Limit 100000, Used 100000, Requested 11706. Please try again in 84h16m59.52s. Visit https://platform.openai.com/account/rate-limits to learn more. You can increase your rate limit by adding a payment method to your account at https://platform.openai.com/account/billing.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+2025-09-29 10:14:39,042 [INFO] Generated 15 enhanced frame captions
+2025-09-29 10:14:39,042 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 10:14:50,715 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 10:14:50,749 [INFO] Cleaned up job directory
+2025-09-29 10:28:48,888 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-29 10:32:12,429 [INFO] Serving homepage
+2025-09-29 10:32:21,168 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 10:32:21,169 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 10:32:21,169 [INFO] Detected platform: youtube
+2025-09-29 10:32:21,169 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 10:33:06,272 [ERROR] yt-dlp timeout
+2025-09-29 10:33:06,273 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 334, in get_direct_video_url
+    result = subprocess.run(
+        cmd_options,
+    ...<2 lines>...
+        timeout=45  # Increased timeout for social media platforms
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['yt-dlp', '--get-url', '-f', 'best[ext=mp4]/best', 'https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB']' timed out after 45 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 474, in summarize_video
+    direct_video_url, platform = get_direct_video_url(req.video_url)
+                                 ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 364, in get_direct_video_url
+    raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
+fastapi.exceptions.HTTPException: 408: Timeout while extracting video URL
+2025-09-29 10:33:29,081 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 10:33:29,082 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 10:33:29,083 [INFO] Detected platform: youtube
+2025-09-29 10:33:29,085 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 10:33:36,201 [INFO] Extracted direct URL: https://rr2---sn-aigl6nsd.googlevideo.com/videoplayback?expire=1759160013&ei=bFLaaN2APeOghcIP3oX32Qk...
+2025-09-29 10:33:39,138 [INFO] Video duration: 563.9 seconds
+2025-09-29 10:33:39,138 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 10:33:39,139 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 10:33:56,301 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 10:33:56,301 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 10:37:03,559 [INFO] Transcript generated successfully (10074 characters)
+2025-09-29 10:37:03,561 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 10:37:18,615 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.02660281239718512, 'duration': 563.850159}
+2025-09-29 10:37:18,616 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 10:37:18,618 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 10:37:18,638 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 10:37:38,412 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-29 10:37:38,448 [INFO] Generated 15 frame captions in single API call
+2025-09-29 10:37:38,448 [INFO] Generated 15 enhanced frame captions
+2025-09-29 10:37:38,449 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 10:37:48,127 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 10:37:48,173 [INFO] Cleaned up job directory
+2025-09-29 10:51:27,280 [INFO] Serving homepage
+2025-09-29 10:51:40,663 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 10:51:40,664 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 10:51:40,664 [INFO] Detected platform: youtube
+2025-09-29 10:51:40,665 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 10:51:49,913 [INFO] Extracted direct URL: https://rr2---sn-aigl6nsd.googlevideo.com/videoplayback?expire=1759161105&ei=sVbaaMpai52Fwg_zsf-ABQ&...
+2025-09-29 10:51:51,813 [INFO] Video duration: 563.9 seconds
+2025-09-29 10:51:51,813 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 10:51:51,816 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 10:52:04,576 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 10:52:04,576 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 10:54:34,748 [INFO] Transcript generated successfully (10074 characters)
+2025-09-29 10:54:34,749 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 10:54:52,082 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.02660281239718512, 'duration': 563.850159}
+2025-09-29 10:54:52,082 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 10:54:52,082 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 10:54:52,091 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 10:55:09,389 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-29 10:55:09,411 [INFO] Generated 15 frame captions in single API call
+2025-09-29 10:55:09,411 [INFO] Generated 15 enhanced frame captions
+2025-09-29 10:55:09,412 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 10:55:20,848 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 10:55:20,861 [INFO] Cleaned up job directory
+2025-09-29 11:26:36,324 [INFO] Serving homepage
+2025-09-29 11:27:05,478 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 11:27:05,478 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 11:27:05,478 [INFO] Detected platform: youtube
+2025-09-29 11:27:05,479 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 11:27:15,340 [INFO] Extracted direct URL: https://rr2---sn-aigl6nsd.googlevideo.com/videoplayback?expire=1759163230&ei=_l7aaKuLNcjVxN8P54qguAM...
+2025-09-29 11:27:17,287 [INFO] Video duration: 563.9 seconds
+2025-09-29 11:27:17,289 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 11:27:17,293 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 11:27:32,800 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 11:27:32,804 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 11:31:00,352 [INFO] Transcript generated successfully (10074 characters)
+2025-09-29 11:31:00,353 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 11:31:13,149 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.02660281239718512, 'duration': 563.850159}
+2025-09-29 11:31:13,150 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 11:31:13,150 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 11:31:13,170 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 11:31:28,297 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-29 11:31:28,308 [INFO] Generated 17 frame captions in single API call
+2025-09-29 11:31:28,309 [INFO] Generated 17 enhanced frame captions
+2025-09-29 11:31:28,313 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 11:31:38,135 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 11:31:38,184 [INFO] Cleaned up job directory
+2025-09-29 12:27:37,668 [INFO] Serving homepage
+2025-09-29 12:28:00,500 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 12:28:00,500 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 12:28:00,501 [INFO] Detected platform: youtube
+2025-09-29 12:28:00,501 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 12:28:41,658 [INFO] Extracted direct URL: https://rr2---sn-aigl6nsd.googlevideo.com/videoplayback?expire=1759166889&ei=SW3aaNO9FfGJvdIPiKO6mQc...
+2025-09-29 12:28:43,799 [INFO] Video duration: 563.9 seconds
+2025-09-29 12:28:43,811 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 12:28:43,830 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 12:28:58,910 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 12:28:58,915 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 12:35:23,615 [INFO] Transcript generated successfully (10074 characters)
+2025-09-29 12:35:23,617 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 12:35:36,840 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.02660281239718512, 'duration': 563.850159}
+2025-09-29 12:35:36,840 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 12:35:36,841 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 12:35:36,865 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 12:35:40,724 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 12:35:40,739 [INFO] Retrying request to /chat/completions in 0.433272 seconds
+2025-09-29 12:35:44,125 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 12:35:44,126 [INFO] Retrying request to /chat/completions in 0.788736 seconds
+2025-09-29 12:35:49,134 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 12:35:49,169 [ERROR] Error generating captions: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o-mini in organization org-Swl9x4YnDt4PbDisvzYIUOmo on tokens per min (TPM): Limit 100000, Used 100000, Requested 11706. Please try again in 84h16m59.52s. Visit https://platform.openai.com/account/rate-limits to learn more. You can increase your rate limit by adding a payment method to your account at https://platform.openai.com/account/billing.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+2025-09-29 12:35:49,173 [INFO] Generated 15 enhanced frame captions
+2025-09-29 12:35:49,175 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 12:35:58,815 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 12:35:58,849 [INFO] Cleaned up job directory
+2025-09-29 13:35:25,514 [INFO] Serving homepage
+2025-09-29 13:35:39,850 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 13:35:39,851 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 13:35:39,852 [INFO] Detected platform: youtube
+2025-09-29 13:35:39,852 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 13:35:49,849 [INFO] Extracted direct URL: https://rr2---sn-aigl6nsd.googlevideo.com/videoplayback?expire=1759170945&ei=IX3aaIOyMNmcp-oP3vHOiA4...
+2025-09-29 13:35:52,056 [INFO] Video duration: 563.9 seconds
+2025-09-29 13:35:52,058 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 13:35:52,063 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 13:36:21,853 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 13:36:21,855 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 13:41:14,493 [INFO] Transcript generated successfully (10074 characters)
+2025-09-29 13:41:14,498 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 13:41:34,885 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.02660281239718512, 'duration': 563.850159}
+2025-09-29 13:41:34,887 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 13:41:34,888 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 13:41:34,954 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 13:41:39,314 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 13:41:39,321 [INFO] Retrying request to /chat/completions in 0.468449 seconds
+2025-09-29 13:41:41,542 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 13:41:41,547 [INFO] Retrying request to /chat/completions in 0.798201 seconds
+2025-09-29 13:41:44,333 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 13:41:44,347 [ERROR] Error generating captions: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o-mini in organization org-Swl9x4YnDt4PbDisvzYIUOmo on tokens per min (TPM): Limit 100000, Used 100000, Requested 11706. Please try again in 84h16m59.52s. Visit https://platform.openai.com/account/rate-limits to learn more. You can increase your rate limit by adding a payment method to your account at https://platform.openai.com/account/billing.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+2025-09-29 13:41:44,348 [INFO] Generated 15 enhanced frame captions
+2025-09-29 13:41:44,349 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 13:41:58,608 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 13:41:58,753 [INFO] Cleaned up job directory
+2025-09-29 13:47:54,392 [INFO] Serving homepage
+2025-09-29 13:49:39,432 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-29 13:49:54,060 [INFO] Serving homepage
+2025-09-29 13:50:06,537 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 13:50:06,537 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 13:50:06,538 [INFO] Detected platform: youtube
+2025-09-29 13:50:06,538 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 13:50:24,823 [INFO] Extracted direct URL: https://rr2---sn-aigl6nsd.googlevideo.com/videoplayback?expire=1759171811&ei=g4DaaM8UqZSFwg_3h4mxCw&...
+2025-09-29 13:50:26,917 [INFO] Video duration: 563.9 seconds
+2025-09-29 13:50:26,918 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 13:50:26,921 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 13:50:42,820 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 13:50:42,824 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 13:54:30,984 [INFO] Transcript generated successfully (10074 characters)
+2025-09-29 13:54:30,985 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 13:54:41,557 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.02660281239718512, 'duration': 563.850159}
+2025-09-29 13:54:41,557 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 13:54:41,558 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 13:54:41,563 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 13:55:06,868 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-29 13:55:06,885 [INFO] Generated 15 frame captions in single API call
+2025-09-29 13:55:06,885 [INFO] Generated 15 enhanced frame captions
+2025-09-29 13:55:06,886 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 13:55:16,681 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 13:55:16,696 [INFO] Cleaned up job directory
+2025-09-29 14:16:16,642 [INFO] Serving homepage
+2025-09-29 14:16:34,692 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 14:16:34,693 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 14:16:34,693 [INFO] Detected platform: youtube
+2025-09-29 14:16:34,695 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 14:16:43,299 [INFO] Extracted direct URL: https://rr2---sn-aigl6nsd.googlevideo.com/videoplayback?expire=1759173399&ei=t4baaPvUE4j16dsP-Pns8Ag...
+2025-09-29 14:16:45,042 [INFO] Video duration: 563.9 seconds
+2025-09-29 14:16:45,043 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 14:16:45,045 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 14:16:53,356 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 14:16:53,356 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 14:18:52,165 [INFO] Transcript generated successfully (10074 characters)
+2025-09-29 14:18:52,170 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 14:19:01,304 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.02660281239718512, 'duration': 563.850159}
+2025-09-29 14:19:01,305 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 14:19:01,305 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 14:19:01,315 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 14:19:16,692 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-29 14:19:16,807 [INFO] Generated 16 frame captions in single API call
+2025-09-29 14:19:16,807 [INFO] Generated 16 enhanced frame captions
+2025-09-29 14:19:16,808 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 14:19:28,096 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 14:19:28,119 [INFO] Cleaned up job directory
+2025-09-29 14:29:33,542 [INFO] Serving homepage
+2025-09-29 14:29:46,154 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 14:29:46,155 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 14:29:46,155 [INFO] Detected platform: youtube
+2025-09-29 14:29:46,156 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 14:29:52,943 [INFO] Extracted direct URL: https://rr2---sn-aigl6nsd.googlevideo.com/videoplayback?expire=1759174189&ei=zYnaaOOAM-Sji9oPnJW0-Qg...
+2025-09-29 14:29:54,665 [INFO] Video duration: 563.9 seconds
+2025-09-29 14:29:54,666 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 15, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 14:29:54,667 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 14:30:01,991 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 14:30:01,992 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 14:32:02,952 [INFO] Transcript generated successfully (10074 characters)
+2025-09-29 14:32:02,952 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 14:32:12,328 [INFO] Frame coverage validation: {'status': 'good', 'frames': 15, 'coverage_ratio': 0.02660281239718512, 'duration': 563.850159}
+2025-09-29 14:32:12,332 [INFO] Extracted 15 frames for enhanced youtube analysis
+2025-09-29 14:32:12,333 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 14:32:12,357 [INFO] Sending all 15 frames to OpenAI Vision API in single call...
+2025-09-29 14:32:34,544 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-29 14:32:34,561 [INFO] Generated 15 frame captions in single API call
+2025-09-29 14:32:34,561 [INFO] Generated 15 enhanced frame captions
+2025-09-29 14:32:34,563 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 14:32:46,755 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 14:32:46,765 [INFO] Cleaned up job directory
+2025-09-29 14:43:05,377 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-29 14:44:16,773 [INFO] Serving homepage
+2025-09-29 14:44:19,980 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 14:44:19,980 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 14:44:19,980 [INFO] Detected platform: youtube
+2025-09-29 14:44:19,980 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 14:44:26,452 [INFO] Extracted direct URL: https://rr2---sn-aigl6nsd.googlevideo.com/videoplayback?expire=1759175063&ei=N43aaNacE-2LvdIPgdGyyA0...
+2025-09-29 14:44:28,163 [INFO] Video duration: 563.9 seconds
+2025-09-29 14:44:28,163 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 14:44:28,165 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 14:44:36,551 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 14:44:36,552 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 14:46:40,880 [INFO] Transcript generated successfully (10074 characters)
+2025-09-29 14:46:40,881 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 14:46:50,034 [INFO] Frame coverage validation: {'status': 'excessive', 'reason': 'Too many frames may overwhelm vision model', 'recommendation': 'Consider key moment detection'}
+2025-09-29 14:46:50,035 [INFO] Extracted 30 frames for enhanced youtube analysis
+2025-09-29 14:46:50,035 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 14:46:50,070 [INFO] Sending all 30 frames to OpenAI Vision API in single call...
+2025-09-29 14:47:06,124 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 14:47:06,126 [INFO] Retrying request to /chat/completions in 0.407400 seconds
+2025-09-29 14:47:10,873 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 14:47:10,874 [INFO] Retrying request to /chat/completions in 0.780560 seconds
+2025-09-29 14:47:15,743 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 14:47:15,745 [ERROR] Error generating captions: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o-mini in organization org-nCdUgslHpUVuluTqKrCMMwgM on tokens per min (TPM): Limit 60000, Used 36830, Requested 23218. Please try again in 48ms. Visit https://platform.openai.com/account/rate-limits to learn more. You can increase your rate limit by adding a payment method to your account at https://platform.openai.com/account/billing.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+2025-09-29 14:47:15,746 [INFO] Generated 30 enhanced frame captions
+2025-09-29 14:47:15,747 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 14:47:29,631 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 14:47:29,651 [INFO] Cleaned up job directory
+2025-09-29 15:33:11,802 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-29 15:33:41,089 [INFO] Serving homepage
+2025-09-29 15:33:48,048 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 15:33:48,049 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=BAiTTJm6DScGzHAB
+2025-09-29 15:33:48,049 [INFO] Detected platform: youtube
+2025-09-29 15:33:48,049 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 15:33:55,564 [INFO] Extracted direct URL: https://rr2---sn-aigl6nsd.googlevideo.com/videoplayback?expire=1759178031&ei=z5jaaInqLKm5mLAPq9-joAM...
+2025-09-29 15:33:57,168 [INFO] Video duration: 563.9 seconds
+2025-09-29 15:33:57,169 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 15:33:57,170 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 15:34:09,601 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 15:34:09,602 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 15:36:19,173 [INFO] Transcript generated successfully (10074 characters)
+2025-09-29 15:36:19,174 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 15:36:29,490 [INFO] Frame coverage validation: {'status': 'excessive', 'reason': 'Too many frames may overwhelm vision model', 'recommendation': 'Consider key moment detection'}
+2025-09-29 15:36:29,491 [INFO] Extracted 30 frames for enhanced youtube analysis
+2025-09-29 15:36:29,492 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 15:36:29,519 [INFO] Sending all 30 frames to OpenAI Vision API in single call...
+2025-09-29 15:37:01,537 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-29 15:37:01,575 [INFO] Generated 31 frame captions in single API call
+2025-09-29 15:37:01,575 [INFO] Generated 31 enhanced frame captions
+2025-09-29 15:37:01,576 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 15:37:13,669 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 15:37:13,694 [INFO] Cleaned up job directory
+2025-09-29 17:57:43,441 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-29 17:58:18,892 [INFO] Serving homepage
+2025-09-29 18:00:54,289 [INFO] Serving homepage
+2025-09-29 18:02:23,907 [INFO] Serving homepage
+2025-09-29 18:03:04,201 [INFO] Serving homepage
+2025-09-29 18:03:07,348 [INFO] Serving homepage
+2025-09-29 18:03:49,790 [INFO] Serving homepage
+2025-09-29 18:04:15,836 [INFO] Serving homepage
+2025-09-29 18:04:56,968 [INFO] Serving homepage
+2025-09-29 18:08:06,960 [INFO] Received video summarization request for https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 18:08:06,961 [INFO] Extracting direct video URL for: https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 18:08:06,962 [INFO] Detected platform: youtube
+2025-09-29 18:08:06,962 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 18:08:20,544 [INFO] Extracted direct URL: https://rr1---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1759187297&ei=Ab3aaIM6sZW65g-d_4-IDQ&...
+2025-09-29 18:08:23,398 [INFO] Video duration: 299.7 seconds
+2025-09-29 18:08:23,399 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 15, 'max_frames': 25, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 18:08:23,403 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 18:08:32,658 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 18:08:32,659 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 18:09:39,207 [INFO] Transcript generated successfully (4376 characters)
+2025-09-29 18:09:39,207 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 18:09:44,472 [INFO] Frame coverage validation: {'status': 'good', 'frames': 20, 'coverage_ratio': 0.06674375236345884, 'duration': 299.653515}
+2025-09-29 18:09:44,473 [INFO] Extracted 20 frames for enhanced youtube analysis
+2025-09-29 18:09:44,473 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 18:09:44,487 [INFO] Sending all 20 frames to OpenAI Vision API in single call...
+2025-09-29 18:09:50,951 [INFO] Retrying request to /chat/completions in 0.481326 seconds
+2025-09-29 18:10:06,746 [INFO] Retrying request to /chat/completions in 0.988891 seconds
+2025-09-29 18:10:22,952 [ERROR] Error generating captions: Request timed out.
+2025-09-29 18:10:22,953 [INFO] Generated 20 enhanced frame captions
+2025-09-29 18:10:22,954 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 18:10:57,614 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 18:10:57,639 [INFO] Cleaned up job directory
+2025-09-29 18:24:21,533 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-29 18:24:28,119 [INFO] Serving homepage
+2025-09-29 18:25:08,244 [INFO] Received video summarization request for https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 18:25:08,244 [INFO] Extracting direct video URL for: https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 18:25:08,245 [INFO] Detected platform: youtube
+2025-09-29 18:25:08,245 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 18:25:24,198 [INFO] Extracted direct URL: https://rr1---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1759188316&ei=_MDaaNDYLvP_i9oP1Oa4iQY...
+2025-09-29 18:25:26,264 [INFO] Video duration: 299.7 seconds
+2025-09-29 18:25:26,265 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 18:25:26,266 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 18:25:35,089 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 18:25:35,091 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 18:27:24,183 [INFO] Transcript generated successfully (4376 characters)
+2025-09-29 18:27:24,183 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 18:27:31,884 [INFO] Frame coverage validation: {'status': 'excessive', 'reason': 'Too many frames may overwhelm vision model', 'recommendation': 'Consider key moment detection'}
+2025-09-29 18:27:31,889 [INFO] Extracted 30 frames for enhanced youtube analysis
+2025-09-29 18:27:31,891 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 18:27:31,937 [INFO] Sending all 30 frames to OpenAI Vision API in single call...
+2025-09-29 18:27:51,275 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 18:27:51,279 [INFO] Retrying request to /chat/completions in 0.454688 seconds
+2025-09-29 18:27:57,020 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 18:27:57,021 [INFO] Retrying request to /chat/completions in 0.760445 seconds
+2025-09-29 18:28:01,927 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-09-29 18:28:01,930 [ERROR] Error generating captions: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o-mini in organization org-dFXrbLTRVf27WKMJPhdiLGq8 on tokens per min (TPM): Limit 100000, Used 85656, Requested 23218. Please try again in 63h53m34.08s. Visit https://platform.openai.com/account/rate-limits to learn more. You can increase your rate limit by adding a payment method to your account at https://platform.openai.com/account/billing.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+2025-09-29 18:28:01,930 [INFO] Generated 30 enhanced frame captions
+2025-09-29 18:28:01,931 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 18:28:12,352 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 18:28:12,379 [INFO] Cleaned up job directory
+2025-09-29 18:34:04,794 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-09-29 18:34:49,960 [INFO] Serving homepage
+2025-09-29 18:35:33,129 [INFO] Received video summarization request for https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 18:35:33,129 [INFO] Extracting direct video URL for: https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 18:35:33,130 [INFO] Detected platform: youtube
+2025-09-29 18:35:33,130 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 18:35:43,644 [INFO] Extracted direct URL: https://rr1---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1759188939&ei=a8PaaNeNCpGWvdIP4ILJmA0...
+2025-09-29 18:35:45,573 [INFO] Video duration: 299.7 seconds
+2025-09-29 18:35:45,574 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 18:35:45,576 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 18:35:51,523 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 18:35:51,524 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 18:38:07,871 [INFO] Transcript generated successfully (4376 characters)
+2025-09-29 18:38:07,872 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 18:41:07,964 [ERROR] Frame extraction timed out
+2025-09-29 18:41:07,964 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 547, in summarize_video
+    result = subprocess.run(frame_cmd, capture_output=True, text=True, timeout=180)
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 556, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1219, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1640, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['ffmpeg', '-i', 'https://rr1---sn-aigl6nzr.googlevideo.com/videoplayback?expire=1759188939&ei=a8PaaNeNCpGWvdIP4ILJmA0&ip=2c0f%3Af5c0%3A520%3Aea63%3A9d8b%3A87f3%3Abe78%3Afa3b&id=o-ADOscD1IEgixkge17l9xI7d3srMJH3hj4cOcEIfpVJUg&itag=18&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1759167339%2C&mh=Wi&mm=31%2C26&mn=sn-aigl6nzr%2Csn-5hne6nzs&ms=au%2Conr&mv=m&mvi=1&pl=44&rms=au%2Cau&initcwndbps=306250&bui=ATw7iSUHhUzCpnBWbdo8FIgXRmKVJ1fdMnBnvPBSydLG6_rh9VJ3ShqMq66MJEbKDX5nCvn-hggceZ56&spc=hcYD5U6wt3U3G_VkFT-xSLQS5XBr5ld2tAzzVbXt1heVPV3az7N04b3tBTpEaX7yfY9PkQ&vprv=1&svpuc=1&mime=video%2Fmp4&ns=1911sdeSU4HPjHKE87ts2rcQ&rqh=1&cnr=14&ratebypass=yes&dur=299.699&lmt=1759083899644216&mt=1759165990&fvip=3&fexp=51552689%2C51565116%2C51565681%2C51580968&c=TVHTML5_SIMPLY&sefc=1&txp=5538534&n=OadMqCAUARz1Hw&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cxpc%2Cbui%2Cspc%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Ccnr%2Cratebypass%2Cdur%2Clmt&sig=AJfQdSswRAIgD3P865VekZOsAUDXanKxK4b4zbwQiSxifdYuhkca2zgCIE_bFMikBlz4Py84J9WaU0mKlcRsrzvTuiQE0RuKH84I&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRgIhAO6eDea1X3xgSaNtfB_p9wAT13i2pgJnyK38LeIqlXfGAiEAiAPQsr-j_zmIMdsFlednGSQnXNJIaxoeuIst7zPEwd8%3D', '-t', '1800', '-vf', 'fps=0.1,scale=-1:720', '-vsync', 'vfr', '-frame_pts', '1', '-threads', '4', '-preset', 'ultrafast', '-q:v', '2', 'video_jobs\\job/frames/frame_%04d.jpg']' timed out after 180 seconds
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_analytics\main.py", line 569, in summarize_video
+    raise HTTPException(status_code=408, detail="Frame extraction timed out")
+fastapi.exceptions.HTTPException: 408: Frame extraction timed out
+2025-09-29 18:41:19,068 [INFO] Received video summarization request for https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 18:41:19,073 [INFO] Extracting direct video URL for: https://www.youtube.com/watch?v=kD3-DKkiVeA
+2025-09-29 18:41:19,081 [INFO] Detected platform: youtube
+2025-09-29 18:41:19,086 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-09-29 18:41:32,384 [INFO] Extracted direct URL: https://rr1---sn-huoob-5c8s.googlevideo.com/videoplayback?expire=1759189285&ei=xcTaaJLsN7_yi9oP3dTbs...
+2025-09-29 18:41:33,297 [INFO] Video duration: 299.7 seconds
+2025-09-29 18:41:33,297 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-09-29 18:41:33,300 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-09-29 18:42:03,451 [INFO] Audio extracted successfully with platform-optimized settings
+2025-09-29 18:42:03,452 [INFO] Transcribing youtube audio with Whisper...
+2025-09-29 18:43:55,683 [INFO] Transcript generated successfully (4376 characters)
+2025-09-29 18:43:55,683 [INFO] Extracting frames with enhanced settings for youtube...
+2025-09-29 18:44:18,639 [INFO] Frame coverage validation: {'status': 'excessive', 'reason': 'Too many frames may overwhelm vision model', 'recommendation': 'Consider key moment detection'}
+2025-09-29 18:44:18,640 [INFO] Extracted 30 frames for enhanced youtube analysis
+2025-09-29 18:44:18,640 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-09-29 18:44:18,693 [INFO] Sending all 30 frames to OpenAI Vision API in single call...
+2025-09-29 18:44:52,815 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-09-29 18:44:53,432 [INFO] Generated 31 frame captions in single API call
+2025-09-29 18:44:53,433 [INFO] Generated 31 enhanced frame captions
+2025-09-29 18:44:53,433 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-09-29 18:45:08,864 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-09-29 18:45:08,889 [INFO] Cleaned up job directory

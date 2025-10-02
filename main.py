@@ -124,7 +124,7 @@ def get_enhanced_platform_analysis_settings(platform: str, video_duration: float
         'twitter': {
             'max_duration': 140,
             'base_interval': 3,  # Reduced for better short video coverage
-            'max_frames': 20,  # Increased slightly
+            'max_frames': 30,  # Increased slightly
             'audio_priority': True,
             'fps_filter': 'fps=1/3',
             'scene_change_detection': True,
@@ -132,8 +132,8 @@ def get_enhanced_platform_analysis_settings(platform: str, video_duration: float
         },
         'instagram': {
             'max_duration': 300,
-            'base_interval': 5,  # Better for stories/reels
-            'max_frames': 25,
+            'base_interval': 10,  # Better for stories/reels
+            'max_frames': 30,
             'audio_priority': True,
             'fps_filter': 'fps=1/5',
             'scene_change_detection': True,
@@ -141,8 +141,8 @@ def get_enhanced_platform_analysis_settings(platform: str, video_duration: float
         },
         'youtube': {
             'max_duration': 1800,
-            'base_interval': 15,  # Reduced from 30s
-            'max_frames': 15,  # Increased from 10
+            'base_interval': 10,  # Reduced from 30s
+            'max_frames': 30,  # Increased from 10
             'audio_priority': True,
             'fps_filter': 'fps=1/15',
             'scene_change_detection': False,  # Less critical for longer content
@@ -151,7 +151,7 @@ def get_enhanced_platform_analysis_settings(platform: str, video_duration: float
         'default': {
             'max_duration': 600,
             'base_interval': 8,  # More frequent than 15s
-            'max_frames': 15,
+            'max_frames': 30,
             'audio_priority': True,
             'fps_filter': 'fps=1/8',
             'scene_change_detection': True,
@@ -607,9 +607,9 @@ TASK:
 Provide a structured, detailed summary that combines both the audio and visual elements. 
 
 1. Identify what the video is about (e.g., gaming → name the game, anime → name the anime, educational → name the topic, music → name the song/artist, Dance → name the dance).
-2. Highlight the **key points or moments using the transcribed audio if its available and understandable** (e.g., timestamps, scenes, or sections of interest).
-3. Explain **why the video is engaging** for {platform.upper()} users (trends, entertainment, learning value, cultural relevance, etc.).
-4. Write in a **clear, audience-friendly way** (easy to read, short paragraphs, avoid jargon).
+2. Highlight all the key points or moments along with the timestamp using the transcribed audio if its available and understandable (e.g., timestamps, scenes, or sections of interest).
+3. Explain the key benefits of watchng the {platform.upper()} video (trends, entertainment, learning value, cultural relevance, etc.).
+4. Write in a clear, audience-friendly way (easy to read, short paragraphs, avoid jargon).
 """  
         else:
             combined_context = f"""
@@ -624,11 +624,11 @@ Provide a structured, detailed summary of this video using only the enhanced vis
 1. Identify the type of content (music, dance, anime, gaming, tutorial, lifestyle, etc.).
 2. Mention any recognizable people, characters, brands(if not famous, classify as upcoming/independent).
 3. Highlight visual trends, styles, and effects that make it engaging for {platform.upper()} users.
-4. Explain the likely **audience appeal** (why someone would watch/share it).
+4. Explain the likely audience appeal (why someone would watch/share it).
 """
         logger.info(f"Requesting enhanced {platform}-aware summary from Gemini...")
         try:
-            model = genai.GenerativeModel('gemini-1.5-flash')  # type: ignore
+            model = genai.GenerativeModel("gemini-2.5-flash")  # type: ignore
             response = model.generate_content(combined_context)
             summary = response.text
             logger.info(f"Enhanced platform-aware summary generated successfully for {platform}")

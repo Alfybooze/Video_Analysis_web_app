@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Video Summarizer</title>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/616/616554.png" type="image/png">
+    <link rel="stylesheet" href="https://bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css">
     <style>
         * {
             margin: 0;
@@ -15,313 +15,810 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #fff;
         }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: rgba(20, 20, 40, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
         h1 {
             text-align: center;
-            color: #e8e8e8;
             margin-bottom: 40px;
-            font-size: 2.5rem;
+            font-size: 36px;
             font-weight: 700;
-            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
-        .input-group {
+        .input-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
             margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .url-input {
             width: 100%;
-            padding: 15px 20px;
-            font-size: 16px;
-            border: 2px solid #374151;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            outline: none;
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 20px;
             transition: all 0.3s ease;
-            background: #1f2937;
-            color: #e5e7eb;
-        }
-
-        .url-input::placeholder {
-            color: #9ca3af;
         }
 
         .url-input:focus {
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+            outline: none;
+            border-color: #a78bfa;
+            background: rgba(0, 0, 0, 0.4);
         }
 
-        .submit-btn {
+        .url-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .summarize-btn {
             width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            font-weight: 600;
-            color: white;
-            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            padding: 16px;
+            background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%);
             border: none;
             border-radius: 12px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .submit-btn:hover:not(:disabled) {
+        .summarize-btn:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
+            box-shadow: 0 10px 30px rgba(167, 139, 250, 0.4);
         }
 
-        .submit-btn:disabled {
-            opacity: 0.7;
+        .summarize-btn:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
         }
 
-        .loading {
-            text-align: center;
-            margin: 30px 0;
-            color: #8b5cf6;
-            font-size: 18px;
+        .example-section {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
         }
 
-        .spinner {
-            border: 3px solid #374151;
-            border-top: 3px solid #8b5cf6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+        .example-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #a78bfa;
+            margin-bottom: 12px;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .example-item {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+            line-height: 1.6;
         }
 
         .summary-card {
-            margin-top: 30px;
-            padding: 25px;
-            background: linear-gradient(135deg, #1f2937, #111827);
-            border-radius: 15px;
-            border-left: 5px solid #8b5cf6;
-            animation: slideIn 0.5s ease-out;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
         }
 
-        @keyframes slideIn {
+        .summary-card.show {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
             from {
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        .summary-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #e5e7eb;
-            margin-bottom: 15px;
+        .summary-header {
             display: flex;
             align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .summary-title::before {
-            content: "🤖";
-            margin-right: 10px;
+        .summary-header-icon {
+            font-size: 28px;
+        }
+
+        .summary-header-title {
             font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .summary-text {
-            line-height: 1.7;
-            color: #d1d5db;
-            font-size: 16px;
+        .platform-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .summary-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #a78bfa;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #c4b5fd;
+            margin-bottom: 16px;
+        }
+
+        .section-content {
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.8;
+            font-size: 15px;
             white-space: pre-wrap;
         }
 
-        .error {
-            background: linear-gradient(135deg, #2d1b1b, #1f1515);
-            border-left-color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .error .summary-title {
-            color: #fca5a5;
-        }
-
-        .error .summary-text {
-            color: #fca5a5;
-        }
-
-        .example-urls {
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(139, 92, 246, 0.1);
-            border-radius: 10px;
-            border: 1px dashed #8b5cf6;
-        }
-
-        .example-title {
+        .section-content strong {
+            color: #fff;
             font-weight: 600;
-            color: #8b5cf6;
-            margin-bottom: 10px;
         }
 
-        .example-url {
-            display: block;
-            color: #9ca3af;
+        .timestamp {
+            background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            display: inline-block;
+            margin-right: 6px;
+            box-shadow: 0 2px 8px rgba(167, 139, 250, 0.3);
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .metadata-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metadata-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 4px;
+        }
+
+        .metadata-value {
             font-size: 14px;
-            margin: 5px 0;
-            cursor: pointer;
-            transition: color 0.3s ease;
+            color: #fff;
+            font-weight: 600;
         }
 
-        .example-url:hover {
-            color: #06b6d4;
+        .view-raw-btn {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .view-raw-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #a78bfa;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .loading-animation {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+        }
+
+        .spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #a78bfa;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .orbit {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            transform: translate(-50%, -50%);
+            animation: spin 3s linear infinite;
+        }
+
+        .orbit-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 100%);
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.6);
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: translateX(-50%) scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: translateX(-50%) scale(1.5);
+                opacity: 0.7;
+            }
+        }
+
+        .loading-text {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+
+        .loading-steps {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .loading-step {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .loading-step.active {
+            background: rgba(167, 139, 250, 0.2);
+            border-color: #a78bfa;
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.3);
+        }
+
+        .loading-step-icon {
+            font-size: 20px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+
+        .loading-step.active .loading-step-icon {
+            animation: bounce 0.5s ease-in-out infinite;
+        }
+
+        .loading-step-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+        }
+
+        .loading-step.active .loading-step-text {
+            color: #fff;
+        }
+
+        @keyframes fadeInOut {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            max-width: 400px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #a78bfa 0%, #60a5fa 50%, #a78bfa 100%);
+            background-size: 200% 100%;
+            border-radius: 10px;
+            animation: progressFlow 2s linear infinite;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        @keyframes progressFlow {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .fun-facts {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(167, 139, 250, 0.1);
+            border-radius: 12px;
+            border: 1px dashed rgba(167, 139, 250, 0.3);
+        }
+
+        .fun-fact-title {
+            font-size: 14px;
+            color: #a78bfa;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .fun-fact-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            color: #fca5a5;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .input-section,
+            .summary-card {
+                padding: 20px;
+            }
+
+            .summary-header-title {
+                font-size: 20px;
+            }
+
+            .section-title {
+                font-size: 16px;
+            }
+
+            .section-content {
+                font-size: 14px;
+            }
+
+            .summarize-btn {
+                font-size: 16px;
+                padding: 14px;
+            }
+
+            .metadata-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .input-section,
+            .summary-card {
+                padding: 16px;
+            }
+
+            .url-input {
+                font-size: 14px;
+                padding: 14px 16px;
+            }
+
+            .timestamp {
+                font-size: 12px;
+                padding: 3px 8px;
+            }
         }
     </style>
 </head>
+
 <body>
-    <div id="root"></div>
+    <div class="container">
+        <h1 class="text-center"><div>AI Video Summarizer</h1>
+        <div class="input-section">
+            <input type="text" class="url-input" id="videoUrl"
+                placeholder="https://youtu.be/bUHe3M4ktU?si=DATTJm6DScGzHAB">
+            <button class="summarize-btn" id="summarizeBtn">
+                <span>🎬</span>
+                <span id="btnText">Summarize Video</span>
+            </button>
 
-    <script type="text/babel">
-        const { useState } = React;
+            <div class="error-message" id="errorMessage"></div>
 
-        function VideoSummarizer() {
-            const [url, setUrl] = useState("");
-            const [summary, setSummary] = useState("");
-            const [loading, setLoading] = useState(false);
-            const [error, setError] = useState("");
-
-            const handleSummarize = async () => {
-                if (!url.trim()) {
-                    setError("Please enter a video URL");
-                    return;
-                }
-
-                setLoading(true);
-                setError("");
-                setSummary("");
-
-                try {
-                    const res = await fetch("/summarize_video", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ video_url: url.trim() })
-                    });
-
-                    if (!res.ok) {
-                        const errorData = await res.json();
-                        throw new Error(errorData.detail || `HTTP ${res.status}`);
-                    }
-
-                    const data = await res.json();
-                    setSummary(data.summary);
-                } catch (err) {
-                    setError(`Failed to summarize video: ${err.message}`);
-                    console.error("Error:", err);
-                } finally {
-                    setLoading(false);
-                }
-            };
-
-            const handleKeyPress = (e) => {
-                if (e.key === 'Enter' && !loading) {
-                    handleSummarize();
-                }
-            };
-
-            const useExampleUrl = (exampleUrl) => {
-                setUrl(exampleUrl);
-            };
-
-            return (
-                <div className="container">
-                    <h1>🎬 AI Video Summarizer</h1>
-                    
-                    <div className="input-group">
-                        <input
-                            type="text"
-                            value={url}
-                            onChange={(e) => setUrl(e.target.value)}
-                            onKeyPress={handleKeyPress}
-                            placeholder="Paste your video URL here (YouTube, Vimeo, direct MP4, etc.)"
-                            className="url-input"
-                        />
-                        
-                        <button 
-                            onClick={handleSummarize} 
-                            disabled={loading}
-                            className="submit-btn"
-                        >
-                            {loading ? "🧠 Analyzing Video, Depending on video length this may take 3 minutes..." : "🚀 Summarize Video"}
-                        </button>
-                    </div>
-
-                    <div className="example-urls">
-                        <div className="example-title">💡 Example URLs you can try:</div>
-                        <span 
-                            className="example-url"
-                            onClick={() => useExampleUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")}
-                        >
-                            • YouTube: https://www.youtube.com/watch?v=dQw4w9WgXcQ
-                        </span>
-                        <span 
-                            className="example-url"
-                            onClick={() => useExampleUrl("https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4")}
-                        >
-                            • Direct MP4: https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4
-                        </span>
-                    </div>
-
-                    {loading && (
-                        <div className="loading">
-                            <div className="spinner"></div>
-                            <p>Processing your video... This may take a few minutes</p>
-                            <p style={{fontSize: "14px", opacity: "0.7", marginTop: "10px"}}>
-                                Extracting audio → Transcribing → Analyzing frames → Generating summary
-                            </p>
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="summary-card error">
-                            <div className="summary-title">❌ Error</div>
-                            <div className="summary-text">{error}</div>
-                        </div>
-                    )}
-
-                    {summary && (
-                        <div className="summary-card">
-                            <div className="summary-title">AI Generated Summary</div>
-                            <div className="summary-text">{summary}</div>
-                        </div>
-                    )}
+            <div class="example-section">
+                <div class="example-title">
+                    <span>💡</span>
+                    <span>Supported platforms:</span>
                 </div>
-            );
+                <div class="example-item">• YouTube: https://www.youtube.com/watch?v=dQw4w9WgXcQ</div>
+                <div class="example-item">• TikTok, Twitter/X, Instagram, and direct MP4 links</div>
+            </div>
+        </div>
+
+        <div class="loading" id="loadingSection" style="display: none;">
+            <div class="spinner"></div>
+            <p style="color: rgba(255, 255, 255, 0.7);">Analyzing video... This may take a moment</p>
+        </div>
+
+        <div class="summary-card" id="summaryCard">
+            <div class="summary-header">
+                <span class="summary-header-icon">🤖</span>
+                <span class="summary-header-icon">✨</span>
+                <h2 class="summary-header-title">AI Generated Summary</h2>
+                <span class="platform-badge" id="platformBadge"></span>
+            </div>
+
+            <div id="summaryContent"></div>
+
+            <div class="summary-section">
+                <h3 class="section-title">
+                    <span>📊</span>
+                    <span>Analysis Metadata</span>
+                </h3>
+                <div class="metadata-grid" id="metadataGrid"></div>
+            </div>
+
+            <button class="view-raw-btn" id="viewRawBtn">
+                <span>👁️</span>
+                <span>View Raw Summary</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        const videoUrlInput = document.getElementById('videoUrl');
+        const summarizeBtn = document.getElementById('summarizeBtn');
+        const btnText = document.getElementById('btnText');
+        const loadingSection = document.getElementById('loadingSection');
+        const summaryCard = document.getElementById('summaryCard');
+        const summaryContent = document.getElementById('summaryContent');
+        const platformBadge = document.getElementById('platformBadge');
+        const metadataGrid = document.getElementById('metadataGrid');
+        const errorMessage = document.getElementById('errorMessage');
+        const viewRawBtn = document.getElementById('viewRawBtn');
+
+        let currentRawSummary = '';
+
+        // Highlight timestamps in text
+        function highlightTimestamps(text) {
+            // Convert **text** to bold
+            let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // Highlight timestamps
+            const timestampRegex = /(\d{1,2}:\d{2}(?::\d{2})?(?:-\d{1,2}:\d{2}(?::\d{2})?)?)/g;
+            return formattedText.replace(timestampRegex, '<span class="timestamp">$1</span>');
         }
 
-        ReactDOM.render(<VideoSummarizer />, document.getElementById('root'));
+        // Parse and format summary
+        function formatSummary(summary) {
+            const lines = summary.split('\n');
+            let html = '';
+            let currentSection = '';
+            let currentContent = '';
+
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+
+                // Check if it's a heading (contains ##, **, or ends with :)
+                const isHeading = line.match(/^#+\s+/) || line.match(/^\*\*.*\*\*:?$/) ||
+                    (line.endsWith(':') && line.length < 60 && !line.includes('('));
+
+                if (isHeading) {
+                    // Save previous section if exists
+                    if (currentSection && currentContent) {
+                        html += createSection(currentSection, currentContent);
+                    }
+
+                    // Start new section
+                    currentSection = line.replace(/^#+\s+/, '').replace(/\*\*/g, '').replace(/:$/, '');
+                    currentContent = '';
+                } else {
+                    // Add to current content
+                    currentContent += line + '\n';
+                }
+            }
+
+            // Add last section
+            if (currentSection && currentContent) {
+                html += createSection(currentSection, currentContent);
+            } else if (currentContent) {
+                // If no sections found, treat whole summary as one section
+                html += createSection('Summary', summary);
+            }
+
+            return html;
+        }
+
+        function createSection(title, content) {
+            const icon = getIconForSection(title);
+            const formattedContent = highlightTimestamps(content.trim());
+
+            return `
+                <div class="summary-section">
+                    <h3 class="section-title">
+                        <span>${icon}</span>
+                        <span>${title}</span>
+                    </h3>
+                    <div class="section-content">${formattedContent}</div>
+                </div>
+            `;
+        }
+
+        function getIconForSection(title) {
+            const titleLower = title.toLowerCase();
+            if (titleLower.includes('intro') || titleLower.includes('overview')) return '📚';
+            if (titleLower.includes('key') || titleLower.includes('point')) return '🔑';
+            if (titleLower.includes('why') || titleLower.includes('engage')) return '💡';
+            if (titleLower.includes('content') || titleLower.includes('type')) return '🎬';
+            if (titleLower.includes('visual') || titleLower.includes('style')) return '🎨';
+            if (titleLower.includes('audience') || titleLower.includes('appeal')) return '👥';
+            if (titleLower.includes('summary') || titleLower.includes('conclusion')) return '📝';
+            return '📌';
+        }
+
+        async function summarizeVideo() {
+            const videoUrl = videoUrlInput.value.trim();
+
+            if (!videoUrl) {
+                showError('Please enter a video URL');
+                return;
+            }
+
+            // Reset UI
+            errorMessage.classList.remove('show');
+            summaryCard.classList.remove('show');
+            loadingSection.style.display = 'block';
+            summarizeBtn.disabled = true;
+            btnText.textContent = 'Processing...';
+
+            try {
+                const response = await fetch(`${API_URL}/summarize_video`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ video_url: videoUrl })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to summarize video');
+                }
+
+                const data = await response.json();
+                displaySummary(data);
+
+            } catch (error) {
+                showError(error.message || 'An error occurred while processing the video');
+            } finally {
+                loadingSection.style.display = 'none';
+                summarizeBtn.disabled = false;
+                btnText.textContent = 'Summarize Video';
+            }
+        }
+
+        function displaySummary(data) {
+            // Set platform badge
+            platformBadge.textContent = data.platform.toUpperCase();
+
+            // Format and display summary
+            currentRawSummary = data.summary;
+            summaryContent.innerHTML = formatSummary(data.summary);
+
+            // Display metadata
+            const metadata = [
+                { label: 'Frames Analyzed', value: data.frames_analyzed || 'N/A' },
+                { label: 'Video Duration', value: data.video_duration ? `${Math.round(data.video_duration)}s` : 'N/A' },
+                { label: 'Audio Transcript', value: data.has_audio_transcript ? 'Yes' : 'No' },
+                { label: 'Vision API', value: data.vision_api_used || 'OpenAI GPT-4' },
+                { label: 'Coverage Status', value: data.frame_coverage_info?.status || 'Good' }
+            ];
+
+            metadataGrid.innerHTML = metadata.map(item => `
+                <div class="metadata-item">
+                    <div class="metadata-label">${item.label}</div>
+                    <div class="metadata-value">${item.value}</div>
+                </div>
+            `).join('');
+
+            // Show summary card
+            summaryCard.classList.add('show');
+
+            // Scroll to summary
+            setTimeout(() => {
+                summaryCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+
+        function showError(message) {
+            errorMessage.textContent = `❌ ${message}`;
+            errorMessage.classList.add('show');
+        }
+
+        // Event listeners
+        summarizeBtn.addEventListener('click', summarizeVideo);
+
+        videoUrlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                summarizeVideo();
+            }
+        });
+
+        viewRawBtn.addEventListener('click', () => {
+            if (currentRawSummary) {
+                const modal = window.open('', '_blank', 'width=800,height=600');
+                modal.document.write(`
+                    <html>
+                        <head>
+                            <title>Raw Summary</title>
+                            <style>
+                                body {
+                                    font-family: monospace;
+                                    padding: 20px;
+                                    background: #1a1a2e;
+                                    color: #fff;
+                                    line-height: 1.6;
+                                }
+                                pre {
+                                    white-space: pre-wrap;
+                                    word-wrap: break-word;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <h2>Raw Summary</h2>
+                            <pre>${currentRawSummary}</pre>
+                        </body>
+                    </html>
+                `);
+            }
+        });
     </script>
 </body>
+
 </html>
