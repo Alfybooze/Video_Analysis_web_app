@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic
+openai
+google-generativeai
+openai-whisper
+requests
+python-multipart
+httpx
+aiohttp

@@ -2251,3 +2251,470 @@ fastapi.exceptions.HTTPException: 408: Frame extraction timed out
 2025-09-29 18:44:53,433 [INFO] Requesting enhanced youtube-aware summary from Gemini...
 2025-09-29 18:45:08,864 [INFO] Enhanced platform-aware summary generated successfully for youtube
 2025-09-29 18:45:08,889 [INFO] Cleaned up job directory
+2025-11-14 14:26:07,989 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-11-14 14:26:30,104 [INFO] Serving homepage
+2025-11-14 14:31:20,375 [INFO] Received video summarization request for https://vm.tiktok.com/ZMAv19KfG/
+2025-11-14 14:31:20,380 [INFO] Extracting direct video URL for: https://vm.tiktok.com/ZMAv19KfG/
+2025-11-14 14:31:20,382 [INFO] Detected platform: tiktok
+2025-11-14 14:31:20,382 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[height<=720]/best --no-check-certificate --user-agent Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 [URL]
+2025-11-14 14:31:20,502 [ERROR] Failed to extract video URL
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_Analysis_web_app\main.py", line 427, in get_direct_video_url
+    result = subprocess.run(
+        cmd_options,
+    ...<2 lines>...
+        timeout=45  # Increased timeout for social media platforms
+    )
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 554, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1036, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                        pass_fds, cwd, env,
+                        ^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+                        gid, gids, uid, umask,
+                        ^^^^^^^^^^^^^^^^^^^^^^
+                        start_new_session, process_group)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\NEPC\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 1548, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+                             # no special security
+                             ^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+                             cwd,
+                             ^^^^
+                             startupinfo)
+                             ^^^^^^^^^^^^
+FileNotFoundError: [WinError 2] The system cannot find the file specified
+2025-11-14 14:48:19,508 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-11-14 14:48:31,471 [INFO] Serving homepage
+2025-11-14 14:48:40,002 [INFO] Received video summarization request for https://vm.tiktok.com/ZMAv19KfG/
+2025-11-14 14:49:34,855 [INFO] Successfully extracted direct URL for tiktok
+2025-11-14 14:49:34,858 [ERROR] Error in video processing: too many values to unpack (expected 2)
+2025-11-14 14:49:43,465 [INFO] Received video summarization request for https://vm.tiktok.com/ZMAv19KfG/
+2025-11-14 14:49:47,874 [INFO] Successfully extracted direct URL for tiktok
+2025-11-14 14:49:47,876 [ERROR] Error in video processing: too many values to unpack (expected 2)
+2025-11-14 14:52:04,805 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-11-14 14:52:16,678 [INFO] Serving homepage
+2025-11-14 14:52:46,525 [INFO] Received video summarization request for https://vm.tiktok.com/ZMAv19KfG/
+2025-11-14 14:53:22,944 [ERROR] Failed to extract direct video URL: [0;31mERROR:[0m [TikTok] 7568220982037581069: Unable to download webpage: HTTPSConnectionPool(host='www.tiktok.com', port=443): Read timed out. (read timeout=20.0) (caused by TransportError("HTTPSConnectionPool(host='www.tiktok.com', port=443): Read timed out. (read timeout=20.0)"))
+2025-11-14 14:53:36,140 [ERROR] Fallback extraction also failed: [0;31mERROR:[0m [vm.tiktok] ZMAv19KfG: Unable to download webpage: <urllib3.connection.HTTPSConnection object at 0x0000018913D916D0>: Failed to resolve 'vm.tiktok.com' ([Errno 11001] getaddrinfo failed) (caused by TransportError("<urllib3.connection.HTTPSConnection object at 0x0000018913D916D0>: Failed to resolve 'vm.tiktok.com' ([Errno 11001] getaddrinfo failed)"))
+2025-11-14 14:57:48,758 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 14:57:54,533 [INFO] Successfully extracted direct URL for youtube
+2025-11-14 14:57:57,827 [INFO] Video duration: 563.8 seconds
+2025-11-14 14:57:57,827 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-11-14 14:57:57,829 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 14:57:57,830 [WARNING] Audio extraction failed: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 14:57:57,830 [INFO] Proceeding with visual-only analysis
+2025-11-14 14:57:57,830 [INFO] Extracting frames with enhanced settings for youtube...
+2025-11-14 14:57:57,830 [ERROR] Error in video processing: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:13:58,766 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-11-14 15:15:34,477 [INFO] Serving homepage
+2025-11-14 15:15:48,123 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:15:48,125 [INFO] Processing youtube video: https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:16:08,961 [INFO] Successfully extracted direct URL for youtube
+2025-11-14 15:16:12,238 [INFO] Video duration: 563.8 seconds
+2025-11-14 15:16:12,238 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-11-14 15:16:12,240 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 15:16:12,240 [WARNING] Audio extraction failed: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:16:12,240 [INFO] Proceeding with visual-only analysis
+2025-11-14 15:16:12,241 [INFO] Extracting frames with enhanced settings for youtube...
+2025-11-14 15:16:12,241 [ERROR] Error in video processing: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:19:54,546 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-11-14 15:20:01,127 [INFO] Serving homepage
+2025-11-14 15:20:41,906 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:20:41,907 [INFO] Processing youtube video: https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:22:06,778 [ERROR] Failed to extract direct video URL: [0;31mERROR:[0m [youtube] biJHe3M4kIU: Unable to download API page: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1018) (caused by SSLError('[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1018)')); please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+2025-11-14 15:22:06,778 [INFO] Attempting fallback extraction with generic options...
+2025-11-14 15:23:48,170 [INFO] Fallback extraction successful
+2025-11-14 15:23:56,243 [INFO] Video duration: 563.8 seconds
+2025-11-14 15:23:56,244 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-11-14 15:23:56,245 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 15:23:56,246 [WARNING] Audio extraction failed: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:23:56,246 [INFO] Proceeding with visual-only analysis
+2025-11-14 15:23:56,246 [INFO] Extracting frames with enhanced settings for youtube...
+2025-11-14 15:23:56,246 [ERROR] Error in video processing: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:25:24,367 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:25:24,370 [INFO] Processing youtube video: https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:25:30,628 [INFO] Successfully extracted direct URL for youtube
+2025-11-14 15:25:36,327 [INFO] Video duration: 563.8 seconds
+2025-11-14 15:25:36,328 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-11-14 15:25:36,329 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 15:25:36,330 [WARNING] Audio extraction failed: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:25:36,330 [INFO] Proceeding with visual-only analysis
+2025-11-14 15:25:36,331 [INFO] Extracting frames with enhanced settings for youtube...
+2025-11-14 15:25:36,331 [ERROR] Error in video processing: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:33:07,694 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:33:07,702 [INFO] Processing youtube video: https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:33:13,474 [INFO] Successfully extracted direct URL for youtube
+2025-11-14 15:33:17,186 [INFO] Video duration: 563.8 seconds
+2025-11-14 15:33:17,186 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-11-14 15:33:17,188 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 15:33:17,189 [WARNING] Audio extraction failed: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:33:17,189 [INFO] Proceeding with visual-only analysis
+2025-11-14 15:33:17,190 [INFO] Extracting frames with enhanced settings for youtube...
+2025-11-14 15:33:17,190 [ERROR] Error in video processing: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:33:52,531 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-11-14 15:33:58,449 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:33:58,452 [INFO] Processing youtube video: https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:34:04,323 [INFO] Successfully extracted direct URL for youtube
+2025-11-14 15:34:07,065 [INFO] Video duration: 563.8 seconds
+2025-11-14 15:34:07,066 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-11-14 15:34:07,067 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 15:34:07,067 [WARNING] Audio extraction failed: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:34:07,068 [INFO] Proceeding with visual-only analysis
+2025-11-14 15:34:07,068 [INFO] Extracting frames with enhanced settings for youtube...
+2025-11-14 15:34:07,068 [ERROR] Error in video processing: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:34:37,335 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:34:37,336 [INFO] Processing youtube video: https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:34:41,058 [INFO] Successfully extracted direct URL for youtube
+2025-11-14 15:34:43,938 [INFO] Video duration: 563.8 seconds
+2025-11-14 15:34:43,938 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-11-14 15:34:43,942 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 15:34:43,943 [WARNING] Audio extraction failed: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:34:43,943 [INFO] Proceeding with visual-only analysis
+2025-11-14 15:34:43,943 [INFO] Extracting frames with enhanced settings for youtube...
+2025-11-14 15:34:43,944 [ERROR] Error in video processing: BaseEventLoop.run_in_executor() got an unexpected keyword argument 'capture_output'
+2025-11-14 15:35:23,585 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-11-14 15:35:34,848 [INFO] Serving homepage
+2025-11-14 15:35:54,032 [INFO] Received video summarization request for https://vm.tiktok.com/ZMAv19KfG/
+2025-11-14 15:35:54,033 [INFO] Extracting direct video URL for: https://vm.tiktok.com/ZMAv19KfG/
+2025-11-14 15:35:54,033 [INFO] Detected platform: tiktok
+2025-11-14 15:35:54,033 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[height<=720]/best --no-check-certificate --user-agent Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 [URL]
+2025-11-14 15:36:01,896 [INFO] Extracted direct URL: https://v19-webapp-prime.tiktok.com/video/tos/maliva/tos-maliva-ve-0068c799-us/oUbH8NwgfAIUAxs0QBI0x...
+2025-11-14 15:36:02,829 [INFO] Using enhanced analysis settings for tiktok: {'max_duration': 300, 'base_interval': 3, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/3', 'scene_change_detection': True, 'min_frames': 8}
+2025-11-14 15:36:02,830 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 15:36:04,178 [WARNING] FFmpeg audio extraction failed: ffmpeg version 8.0-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-lcms2 --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libopenjpeg --enable-libquirc --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-liboapv --enable-libqrencode --enable-librav1e --enable-libsvtav1 --enable-libvvenc --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-openal --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-liblc3 --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint --enable-whisper
+  libavutil      60.  8.100 / 60.  8.100
+  libavcodec     62. 11.100 / 62. 11.100
+  libavformat    62.  3.100 / 62.  3.100
+  libavdevice    62.  1.100 / 62.  1.100
+  libavfilter    11.  4.100 / 11.  4.100
+  libswscale      9.  1.100 /  9.  1.100
+  libswresample   6.  1.100 /  6.  1.100
+[https @ 00000294199d8440] HTTP error 403 Forbidden
+[in#0 @ 00000294199d70c0] Error opening input: Server returned 403 Forbidden (access denied)
+Error opening input file https://v19-webapp-prime.tiktok.com/video/tos/maliva/tos-maliva-ve-0068c799-us/oUbH8NwgfAIUAxs0QBI0xgApuiBpiCbJW9EEd1/?a=1988&bti=ODszNWYuMDE6&ch=0&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C&cv=1&br=1200&bt=600&cs=2&ds=3&ft=I~da4onxD12Nv99Ei.IxR4UNolwF-UjNSNopiX&mime_type=video_mp4&qs=14&rc=NTdkNzRnN2U8aWk1Ojk6aEBpamdmZm85cnh1NzMzZzczNEAyLjU2YTNjXy4xMWBjXzQ1YSNoZl9fMmRjZTBhLS1kMS9zcw%3D%3D&btag=e00090000&expire=1763303822&l=20251114223602D64E53C73C45C80A3553&ply_type=2&policy=2&signature=5b63dec68be7eb1633e09f6210917253&tk=tt_chain_token.
+Error opening input files: Server returned 403 Forbidden (access denied)
+
+2025-11-14 15:36:04,181 [INFO] Proceeding with visual-only analysis
+2025-11-14 15:36:04,181 [INFO] Extracting frames with enhanced settings for tiktok...
+2025-11-14 15:36:05,105 [ERROR] FFmpeg frame extraction failed: ffmpeg version 8.0-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-lcms2 --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libopenjpeg --enable-libquirc --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-liboapv --enable-libqrencode --enable-librav1e --enable-libsvtav1 --enable-libvvenc --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-openal --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-liblc3 --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint --enable-whisper
+  libavutil      60.  8.100 / 60.  8.100
+  libavcodec     62. 11.100 / 62. 11.100
+  libavformat    62.  3.100 / 62.  3.100
+  libavdevice    62.  1.100 / 62.  1.100
+  libavfilter    11.  4.100 / 11.  4.100
+  libswscale      9.  1.100 /  9.  1.100
+  libswresample   6.  1.100 /  6.  1.100
+-vsync is deprecated. Use -fps_mode
+[https @ 00000214aba98500] HTTP error 403 Forbidden
+[in#0 @ 00000214aba97540] Error opening input: Server returned 403 Forbidden (access denied)
+Error opening input file https://v19-webapp-prime.tiktok.com/video/tos/maliva/tos-maliva-ve-0068c799-us/oUbH8NwgfAIUAxs0QBI0xgApuiBpiCbJW9EEd1/?a=1988&bti=ODszNWYuMDE6&ch=0&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C&cv=1&br=1200&bt=600&cs=2&ds=3&ft=I~da4onxD12Nv99Ei.IxR4UNolwF-UjNSNopiX&mime_type=video_mp4&qs=14&rc=NTdkNzRnN2U8aWk1Ojk6aEBpamdmZm85cnh1NzMzZzczNEAyLjU2YTNjXy4xMWBjXzQ1YSNoZl9fMmRjZTBhLS1kMS9zcw%3D%3D&btag=e00090000&expire=1763303822&l=20251114223602D64E53C73C45C80A3553&ply_type=2&policy=2&signature=5b63dec68be7eb1633e09f6210917253&tk=tt_chain_token.
+Error opening input files: Server returned 403 Forbidden (access denied)
+
+2025-11-14 15:36:05,105 [INFO] Attempting fallback frame extraction...
+2025-11-14 15:36:05,986 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_Analysis_web_app\main.py", line 565, in summarize_video
+    raise HTTPException(status_code=400, detail="Failed to extract frames")
+fastapi.exceptions.HTTPException: 400: Failed to extract frames
+2025-11-14 15:36:41,366 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:36:41,369 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 15:36:41,369 [INFO] Detected platform: youtube
+2025-11-14 15:36:41,370 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-11-14 15:36:49,420 [INFO] Extracted direct URL: https://manifest.googlevideo.com/api/manifest/hls_playlist/expire/1763152609/ei/gD4XaZ3NL8GCp-oPkaCJ...
+2025-11-14 15:36:53,452 [INFO] Video duration: 563.8 seconds
+2025-11-14 15:36:53,453 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-11-14 15:36:53,455 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 15:38:53,511 [WARNING] FFmpeg audio extraction timed out
+2025-11-14 15:38:53,511 [INFO] Proceeding with visual-only analysis
+2025-11-14 15:38:53,512 [INFO] Transcribing youtube audio with Whisper...
+2025-11-14 15:40:32,978 [INFO] Transcript generated successfully (7020 characters)
+2025-11-14 15:40:32,979 [INFO] Extracting frames with enhanced settings for youtube...
+2025-11-14 15:41:30,143 [INFO] Frame coverage validation: {'status': 'excessive', 'reason': 'Too many frames may overwhelm vision model', 'recommendation': 'Consider key moment detection'}
+2025-11-14 15:41:30,143 [INFO] Extracted 30 frames for enhanced youtube analysis
+2025-11-14 15:41:30,144 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-11-14 15:41:30,191 [INFO] Sending all 30 frames to OpenAI Vision API in single call...
+2025-11-14 15:42:16,950 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-14 15:42:16,968 [INFO] Generated 31 frame captions in single API call
+2025-11-14 15:42:16,969 [INFO] Generated 31 enhanced frame captions
+2025-11-14 15:42:16,969 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-11-14 15:43:00,106 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-11-14 15:43:00,139 [INFO] Cleaned up job directory
+2025-11-14 16:00:46,772 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-11-14 16:00:55,543 [INFO] Serving homepage
+2025-11-14 16:00:59,871 [INFO] Received video summarization request for https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 16:00:59,871 [INFO] Extracting direct video URL for: https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY
+2025-11-14 16:00:59,871 [INFO] Detected platform: youtube
+2025-11-14 16:00:59,872 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[ext=mp4]/best [URL]
+2025-11-14 16:01:09,638 [INFO] Extracted direct URL: https://manifest.googlevideo.com/api/manifest/hls_playlist/expire/1763154069/ei/NUQXacTRCeyiy_sPg4_x...
+2025-11-14 16:01:12,232 [INFO] Video duration: 563.8 seconds
+2025-11-14 16:01:12,233 [INFO] Using enhanced analysis settings for youtube: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-11-14 16:01:12,235 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 16:01:38,347 [INFO] Audio extracted successfully with platform-optimized settings
+2025-11-14 16:01:38,348 [INFO] Transcribing youtube audio with Whisper and timestamps...
+2025-11-14 16:04:33,841 [INFO] Transcript generated successfully (10082 characters with timestamps)
+2025-11-14 16:04:33,847 [INFO] Extracting frames with enhanced settings for youtube...
+2025-11-14 16:05:25,109 [INFO] Frame coverage validation: {'status': 'excessive', 'reason': 'Too many frames may overwhelm vision model', 'recommendation': 'Consider key moment detection'}
+2025-11-14 16:05:25,109 [INFO] Extracted 30 frames for enhanced youtube analysis
+2025-11-14 16:05:25,110 [INFO] Generating enhanced frame captions with OpenAI Vision API...
+2025-11-14 16:05:25,135 [INFO] Sending all 30 frames to OpenAI Vision API in single call...
+2025-11-14 16:05:33,496 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-11-14 16:05:33,498 [INFO] Retrying request to /chat/completions in 0.408630 seconds
+2025-11-14 16:05:41,358 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-11-14 16:05:41,359 [INFO] Retrying request to /chat/completions in 0.966012 seconds
+2025-11-14 16:05:49,415 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-11-14 16:05:49,417 [ERROR] Error generating captions: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o-mini in organization org-8FQRlVDEVsktpOzTMkT0JigW on tokens per min (TPM): Limit 100000, Used 85972, Requested 23218. Please try again in 66h10m4.8s. Visit https://platform.openai.com/account/rate-limits to learn more. You can increase your rate limit by adding a payment method to your account at https://platform.openai.com/account/billing.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+2025-11-14 16:05:49,417 [INFO] Generated 30 enhanced frame captions
+2025-11-14 16:05:49,417 [INFO] Requesting enhanced youtube-aware summary from Gemini...
+2025-11-14 16:09:29,524 [INFO] Enhanced platform-aware summary generated successfully for youtube
+2025-11-14 16:09:29,549 [INFO] Cleaned up job directory
+2025-11-14 18:52:05,299 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-11-14 18:52:14,560 [INFO] Serving homepage
+2025-11-14 18:53:04,909 [INFO] Received video summarization request for https://vm.tiktok.com/ZMAv19KfG/
+2025-11-14 18:53:04,910 [INFO] Extracting direct video URL for: https://vm.tiktok.com/ZMAv19KfG/
+2025-11-14 18:53:04,910 [INFO] Detected platform: tiktok
+2025-11-14 18:53:04,910 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[height<=720]/best --no-check-certificate --user-agent Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 --referer https://www.tiktok.com/ --add-header Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8 --add-header Accept-Language:en-US,en;q=0.5 --add-header Accept-Encoding:gzip, deflate, br --add-header DNT:1 --add-header Connection:keep-alive --add-header Upgrade-Insecure-Requests:1 --sleep-interval 2 --max-sleep-interval 5 --extractor-args tiktok:api_hostname=api22-normal-c-alisg.tiktokv.com --extractor-args tiktok:app_info=7351144128930783234,7351144128930783234 --no-playlist --ignore-config [URL]
+2025-11-14 18:53:14,143 [ERROR] yt-dlp failed: WARNING: [TikTok] Expecting value in '': line 1 column 1 (char 0). Retrying... (attempt 1 of 2)
+WARNING: [TikTok] 7568220982037581069: Failed to parse JSON (caused by JSONDecodeError("Expecting value in '': line 1 column 1 (char 0)")); trying with webpage
+WARNING: [TikTok] The extractor is attempting impersonation, but no impersonate target is available. If you encounter errors, then see  https://github.com/yt-dlp/yt-dlp#impersonation  for information on installing the required dependencies
+ERROR: [TikTok] 7568220982037581069: Unable to extract webpage video data; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+
+2025-11-14 18:53:14,144 [INFO] Retrying with generic options...
+2025-11-14 18:53:18,994 [INFO] Extracted direct URL: https://v19-webapp-prime.tiktok.com/video/tos/maliva/tos-maliva-ve-0068c799-us/oQixcJ80gAlJBN8Qi1x9E...
+2025-11-14 18:53:20,507 [INFO] Using enhanced analysis settings for tiktok: {'max_duration': 300, 'base_interval': 3, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/3', 'scene_change_detection': True, 'min_frames': 8}
+2025-11-14 18:53:20,509 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 18:53:21,882 [WARNING] FFmpeg audio extraction failed: ffmpeg version 8.0-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-lcms2 --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libopenjpeg --enable-libquirc --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-liboapv --enable-libqrencode --enable-librav1e --enable-libsvtav1 --enable-libvvenc --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-openal --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-liblc3 --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint --enable-whisper
+  libavutil      60.  8.100 / 60.  8.100
+  libavcodec     62. 11.100 / 62. 11.100
+  libavformat    62.  3.100 / 62.  3.100
+  libavdevice    62.  1.100 / 62.  1.100
+  libavfilter    11.  4.100 / 11.  4.100
+  libswscale      9.  1.100 /  9.  1.100
+  libswresample   6.  1.100 /  6.  1.100
+[https @ 000001fc95c48440] HTTP error 403 Forbidden
+[in#0 @ 000001fc95c470c0] Error opening input: Server returned 403 Forbidden (access denied)
+Error opening input file https://v19-webapp-prime.tiktok.com/video/tos/maliva/tos-maliva-ve-0068c799-us/oQixcJ80gAlJBN8Qi1x9EI6ApDHfEJbcCWpwIB/?a=1988&bti=ODszNWYuMDE6&ch=0&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C&cv=1&br=2558&bt=1279&cs=2&ds=4&ft=-Csk_mIUPD12Nyg6pd-Ux2O5GY6e3wv25XcAp&mime_type=video_mp4&qs=15&rc=M2k8ZDs1PGdlaTdnOWVnNEBpamdmZm85cnh1NzMzZzczNEAuYzMtMi8zX2AxXl5eMGNiYSNoZl9fMmRjZTBhLS1kMS9zcw%3D%3D&btag=e00090000&expire=1763315660&l=2025111501531958FFDADE8C46DE18B329&ply_type=2&policy=2&signature=78247293f5ee704ffa332bb4e2c0f216&tk=tt_chain_token.
+Error opening input files: Server returned 403 Forbidden (access denied)
+
+2025-11-14 18:53:21,884 [INFO] Proceeding with visual-only analysis
+2025-11-14 18:53:21,884 [INFO] Extracting frames with enhanced settings for tiktok...
+2025-11-14 18:53:23,058 [ERROR] FFmpeg frame extraction failed: ffmpeg version 8.0-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-lcms2 --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libopenjpeg --enable-libquirc --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-liboapv --enable-libqrencode --enable-librav1e --enable-libsvtav1 --enable-libvvenc --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-openal --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-liblc3 --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint --enable-whisper
+  libavutil      60.  8.100 / 60.  8.100
+  libavcodec     62. 11.100 / 62. 11.100
+  libavformat    62.  3.100 / 62.  3.100
+  libavdevice    62.  1.100 / 62.  1.100
+  libavfilter    11.  4.100 / 11.  4.100
+  libswscale      9.  1.100 /  9.  1.100
+  libswresample   6.  1.100 /  6.  1.100
+-vsync is deprecated. Use -fps_mode
+[https @ 000002a2eedc8500] HTTP error 403 Forbidden
+[in#0 @ 000002a2eedc7540] Error opening input: Server returned 403 Forbidden (access denied)
+Error opening input file https://v19-webapp-prime.tiktok.com/video/tos/maliva/tos-maliva-ve-0068c799-us/oQixcJ80gAlJBN8Qi1x9EI6ApDHfEJbcCWpwIB/?a=1988&bti=ODszNWYuMDE6&ch=0&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C&cv=1&br=2558&bt=1279&cs=2&ds=4&ft=-Csk_mIUPD12Nyg6pd-Ux2O5GY6e3wv25XcAp&mime_type=video_mp4&qs=15&rc=M2k8ZDs1PGdlaTdnOWVnNEBpamdmZm85cnh1NzMzZzczNEAuYzMtMi8zX2AxXl5eMGNiYSNoZl9fMmRjZTBhLS1kMS9zcw%3D%3D&btag=e00090000&expire=1763315660&l=2025111501531958FFDADE8C46DE18B329&ply_type=2&policy=2&signature=78247293f5ee704ffa332bb4e2c0f216&tk=tt_chain_token.
+Error opening input files: Server returned 403 Forbidden (access denied)
+
+2025-11-14 18:53:23,059 [INFO] Attempting fallback frame extraction...
+2025-11-14 18:53:24,378 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_Analysis_web_app\main.py", line 621, in summarize_video
+    raise HTTPException(status_code=400, detail="Failed to extract frames")
+fastapi.exceptions.HTTPException: 400: Failed to extract frames
+2025-11-14 18:59:01,973 [INFO] Starting enhanced FastAPI server with improved visual analysis...
+2025-11-14 18:59:12,721 [INFO] Serving homepage
+2025-11-14 18:59:19,265 [INFO] Received video summarization request for https://vm.tiktok.com/ZMAv19KfG/
+2025-11-14 18:59:19,265 [INFO] Extracting direct video URL for: https://vm.tiktok.com/ZMAv19KfG/
+2025-11-14 18:59:19,266 [INFO] Detected platform: tiktok
+2025-11-14 18:59:19,266 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[height<=720]/best --no-check-certificate --impersonate chrome120 --user-agent Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 --referer https://www.tiktok.com/ --add-header Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7 --add-header Accept-Language:en-US,en;q=0.9 --add-header Accept-Encoding:gzip, deflate, br --add-header Cache-Control:max-age=0 --add-header DNT:1 --add-header Connection:keep-alive --add-header Upgrade-Insecure-Requests:1 --add-header Sec-Fetch-Dest:document --add-header Sec-Fetch-Mode:navigate --add-header Sec-Fetch-Site:none --add-header Sec-Fetch-User:?1 --add-header sec-ch-ua:"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120" --add-header sec-ch-ua-mobile:?0 --add-header sec-ch-ua-platform:"Windows" --extractor-args tiktok:api_hostname=api22-normal-c-alisg.tiktokv.com --extractor-args tiktok:app_info=7351144128930783234,7351144128930783234 --extractor-args tiktok:formats=bytevc1,mp4 --sleep-interval 3 --max-sleep-interval 7 --wait-for-video 5 --cookies-from-browser chrome --no-playlist --ignore-config --geo-bypass --geo-bypass-country US [URL]
+2025-11-14 18:59:26,826 [ERROR] yt-dlp failed: ERROR: Failed to decrypt with DPAPI. See  https://github.com/yt-dlp/yt-dlp/issues/10927  for more info
+ERROR: Failed to decrypt with DPAPI. See  https://github.com/yt-dlp/yt-dlp/issues/10927  for more info
+
+2025-11-14 18:59:26,826 [INFO] Retrying with generic options...
+2025-11-14 18:59:31,931 [INFO] Extracted direct URL: https://v19-webapp-prime.tiktok.com/video/tos/maliva/tos-maliva-ve-0068c799-us/oQixcJ80gAlJBN8Qi1x9E...
+2025-11-14 18:59:32,984 [INFO] Using enhanced analysis settings for tiktok: {'max_duration': 300, 'base_interval': 3, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/3', 'scene_change_detection': True, 'min_frames': 8}
+2025-11-14 18:59:32,990 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 18:59:34,600 [WARNING] FFmpeg audio extraction failed: ffmpeg version 8.0-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-lcms2 --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libopenjpeg --enable-libquirc --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-liboapv --enable-libqrencode --enable-librav1e --enable-libsvtav1 --enable-libvvenc --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-openal --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-liblc3 --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint --enable-whisper
+  libavutil      60.  8.100 / 60.  8.100
+  libavcodec     62. 11.100 / 62. 11.100
+  libavformat    62.  3.100 / 62.  3.100
+  libavdevice    62.  1.100 / 62.  1.100
+  libavfilter    11.  4.100 / 11.  4.100
+  libswscale      9.  1.100 /  9.  1.100
+  libswresample   6.  1.100 /  6.  1.100
+[https @ 0000022526d58440] HTTP error 403 Forbidden
+[in#0 @ 0000022526d570c0] Error opening input: Server returned 403 Forbidden (access denied)
+Error opening input file https://v19-webapp-prime.tiktok.com/video/tos/maliva/tos-maliva-ve-0068c799-us/oQixcJ80gAlJBN8Qi1x9EI6ApDHfEJbcCWpwIB/?a=1988&bti=ODszNWYuMDE6&ch=0&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C&cv=1&br=2558&bt=1279&cs=2&ds=4&ft=-Csk_mIUPD12NSp6pd-Ux~y5XY6e3wv25pcAp&mime_type=video_mp4&qs=15&rc=M2k8ZDs1PGdlaTdnOWVnNEBpamdmZm85cnh1NzMzZzczNEAuYzMtMi8zX2AxXl5eMGNiYSNoZl9fMmRjZTBhLS1kMS9zcw%3D%3D&btag=e00090000&expire=1763316032&l=20251115015932449FC7F57C02E2194E80&ply_type=2&policy=2&signature=3e134c0118dd434c407ab7502cc80dd3&tk=tt_chain_token.
+Error opening input files: Server returned 403 Forbidden (access denied)
+
+2025-11-14 18:59:34,601 [INFO] Proceeding with visual-only analysis
+2025-11-14 18:59:34,602 [INFO] Extracting frames with enhanced settings for tiktok...
+2025-11-14 18:59:35,911 [ERROR] FFmpeg frame extraction failed: ffmpeg version 8.0-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-lcms2 --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libopenjpeg --enable-libquirc --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-liboapv --enable-libqrencode --enable-librav1e --enable-libsvtav1 --enable-libvvenc --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-openal --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-liblc3 --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint --enable-whisper
+  libavutil      60.  8.100 / 60.  8.100
+  libavcodec     62. 11.100 / 62. 11.100
+  libavformat    62.  3.100 / 62.  3.100
+  libavdevice    62.  1.100 / 62.  1.100
+  libavfilter    11.  4.100 / 11.  4.100
+  libswscale      9.  1.100 /  9.  1.100
+  libswresample   6.  1.100 /  6.  1.100
+-vsync is deprecated. Use -fps_mode
+[https @ 0000026a8eca8500] HTTP error 403 Forbidden
+[in#0 @ 0000026a8eca7540] Error opening input: Server returned 403 Forbidden (access denied)
+Error opening input file https://v19-webapp-prime.tiktok.com/video/tos/maliva/tos-maliva-ve-0068c799-us/oQixcJ80gAlJBN8Qi1x9EI6ApDHfEJbcCWpwIB/?a=1988&bti=ODszNWYuMDE6&ch=0&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C&cv=1&br=2558&bt=1279&cs=2&ds=4&ft=-Csk_mIUPD12NSp6pd-Ux~y5XY6e3wv25pcAp&mime_type=video_mp4&qs=15&rc=M2k8ZDs1PGdlaTdnOWVnNEBpamdmZm85cnh1NzMzZzczNEAuYzMtMi8zX2AxXl5eMGNiYSNoZl9fMmRjZTBhLS1kMS9zcw%3D%3D&btag=e00090000&expire=1763316032&l=20251115015932449FC7F57C02E2194E80&ply_type=2&policy=2&signature=3e134c0118dd434c407ab7502cc80dd3&tk=tt_chain_token.
+Error opening input files: Server returned 403 Forbidden (access denied)
+
+2025-11-14 18:59:35,912 [INFO] Attempting fallback frame extraction...
+2025-11-14 18:59:36,900 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_Analysis_web_app\main.py", line 641, in summarize_video
+    raise HTTPException(status_code=400, detail="Failed to extract frames")
+fastapi.exceptions.HTTPException: 400: Failed to extract frames
+2025-11-14 19:03:38,765 [INFO] Received video summarization request for https://vm.tiktok.com/ZMAv8s4xb/
+2025-11-14 19:03:38,766 [INFO] Extracting direct video URL for: https://vm.tiktok.com/ZMAv8s4xb/
+2025-11-14 19:03:38,767 [INFO] Detected platform: tiktok
+2025-11-14 19:03:38,768 [INFO] Running yt-dlp with options: yt-dlp --get-url -f best[height<=720]/best --no-check-certificate --impersonate chrome120 --user-agent Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 --referer https://www.tiktok.com/ --add-header Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7 --add-header Accept-Language:en-US,en;q=0.9 --add-header Accept-Encoding:gzip, deflate, br --add-header Cache-Control:max-age=0 --add-header DNT:1 --add-header Connection:keep-alive --add-header Upgrade-Insecure-Requests:1 --add-header Sec-Fetch-Dest:document --add-header Sec-Fetch-Mode:navigate --add-header Sec-Fetch-Site:none --add-header Sec-Fetch-User:?1 --add-header sec-ch-ua:"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120" --add-header sec-ch-ua-mobile:?0 --add-header sec-ch-ua-platform:"Windows" --extractor-args tiktok:api_hostname=api22-normal-c-alisg.tiktokv.com --extractor-args tiktok:app_info=7351144128930783234,7351144128930783234 --extractor-args tiktok:formats=bytevc1,mp4 --sleep-interval 3 --max-sleep-interval 7 --wait-for-video 5 --cookies-from-browser chrome --no-playlist --ignore-config --geo-bypass --geo-bypass-country US [URL]
+2025-11-14 19:03:48,898 [ERROR] yt-dlp failed: ERROR: Failed to decrypt with DPAPI. See  https://github.com/yt-dlp/yt-dlp/issues/10927  for more info
+ERROR: Failed to decrypt with DPAPI. See  https://github.com/yt-dlp/yt-dlp/issues/10927  for more info
+
+2025-11-14 19:03:48,898 [INFO] Retrying with generic options...
+2025-11-14 19:03:54,055 [INFO] Extracted direct URL: https://v19-webapp-prime.tiktok.com/video/tos/alisg/tos-alisg-pve-0037/oAHiWvkojgQJJZGafFILfsqIRbGAd...
+2025-11-14 19:03:54,948 [INFO] Using enhanced analysis settings for tiktok: {'max_duration': 300, 'base_interval': 3, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/3', 'scene_change_detection': True, 'min_frames': 8}
+2025-11-14 19:03:54,950 [INFO] Extracting audio with platform-optimized FFmpeg settings...
+2025-11-14 19:03:55,830 [WARNING] FFmpeg audio extraction failed: ffmpeg version 8.0-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-lcms2 --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libopenjpeg --enable-libquirc --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-liboapv --enable-libqrencode --enable-librav1e --enable-libsvtav1 --enable-libvvenc --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-openal --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-liblc3 --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint --enable-whisper
+  libavutil      60.  8.100 / 60.  8.100
+  libavcodec     62. 11.100 / 62. 11.100
+  libavformat    62.  3.100 / 62.  3.100
+  libavdevice    62.  1.100 / 62.  1.100
+  libavfilter    11.  4.100 / 11.  4.100
+  libswscale      9.  1.100 /  9.  1.100
+  libswresample   6.  1.100 /  6.  1.100
+[https @ 0000021354328540] HTTP error 403 Forbidden
+[in#0 @ 0000021354327200] Error opening input: Server returned 403 Forbidden (access denied)
+Error opening input file https://v19-webapp-prime.tiktok.com/video/tos/alisg/tos-alisg-pve-0037/oAHiWvkojgQJJZGafFILfsqIRbGAdZAwfAe27g/?a=1988&bti=ODszNWYuMDE6&ch=0&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C&cv=1&br=2594&bt=1297&cs=2&ds=3&ft=-Csk_mIUPD12NC-6pd-Ux5NFaY6e3wv25xcAp&mime_type=video_mp4&qs=14&rc=cnF8b2hsc2d3SkBwaHIxaDFybndmNjk7PGk2Mzc5Nmg8aWY5OEBpajR1cHA5cmVlNjMzODgzNEBjRl5Nc3FePmJKYSNvYF90aHFmOiMuY18tMjE2XjExLy9jYWE0YSNwbC1nMmRzcTFhLS1kLzFzcw%3D%3D&btag=e000b8000&expire=1763316249&l=202511150203549A689AE293D0401C330F&ply_type=2&policy=2&signature=67800607430cba85628e88eb57e19022&tk=tt_chain_token.
+Error opening input files: Server returned 403 Forbidden (access denied)
+
+2025-11-14 19:03:55,831 [INFO] Proceeding with visual-only analysis
+2025-11-14 19:03:55,831 [INFO] Extracting frames with enhanced settings for tiktok...
+2025-11-14 19:03:56,685 [ERROR] FFmpeg frame extraction failed: ffmpeg version 8.0-full_build-www.gyan.dev Copyright (c) 2000-2025 the FFmpeg developers
+  built with gcc 15.2.0 (Rev8, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-lcms2 --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-libdvdnav --enable-libdvdread --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libopenjpeg --enable-libquirc --enable-libuavs3d --enable-libxevd --enable-libzvbi --enable-liboapv --enable-libqrencode --enable-librav1e --enable-libsvtav1 --enable-libvvenc --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxeve --enable-libxvid --enable-libaom --enable-libjxl --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-dxva2 --enable-d3d11va --enable-d3d12va --enable-ffnvcodec --enable-libvpl --enable-nvdec --enable-nvenc --enable-vaapi --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-openal --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-liblc3 --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint --enable-whisper
+  libavutil      60.  8.100 / 60.  8.100
+  libavcodec     62. 11.100 / 62. 11.100
+  libavformat    62.  3.100 / 62.  3.100
+  libavdevice    62.  1.100 / 62.  1.100
+  libavfilter    11.  4.100 / 11.  4.100
+  libswscale      9.  1.100 /  9.  1.100
+  libswresample   6.  1.100 /  6.  1.100
+-vsync is deprecated. Use -fps_mode
+[https @ 000001ff50e485c0] HTTP error 403 Forbidden
+[in#0 @ 000001ff50e475c0] Error opening input: Server returned 403 Forbidden (access denied)
+Error opening input file https://v19-webapp-prime.tiktok.com/video/tos/alisg/tos-alisg-pve-0037/oAHiWvkojgQJJZGafFILfsqIRbGAdZAwfAe27g/?a=1988&bti=ODszNWYuMDE6&ch=0&cr=3&dr=0&lr=all&cd=0%7C0%7C0%7C&cv=1&br=2594&bt=1297&cs=2&ds=3&ft=-Csk_mIUPD12NC-6pd-Ux5NFaY6e3wv25xcAp&mime_type=video_mp4&qs=14&rc=cnF8b2hsc2d3SkBwaHIxaDFybndmNjk7PGk2Mzc5Nmg8aWY5OEBpajR1cHA5cmVlNjMzODgzNEBjRl5Nc3FePmJKYSNvYF90aHFmOiMuY18tMjE2XjExLy9jYWE0YSNwbC1nMmRzcTFhLS1kLzFzcw%3D%3D&btag=e000b8000&expire=1763316249&l=202511150203549A689AE293D0401C330F&ply_type=2&policy=2&signature=67800607430cba85628e88eb57e19022&tk=tt_chain_token.
+Error opening input files: Server returned 403 Forbidden (access denied)
+
+2025-11-14 19:03:56,686 [INFO] Attempting fallback frame extraction...
+2025-11-14 19:03:57,597 [ERROR] Unexpected error during summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_Analysis_web_app\main.py", line 641, in summarize_video
+    raise HTTPException(status_code=400, detail="Failed to extract frames")
+fastapi.exceptions.HTTPException: 400: Failed to extract frames
+2025-11-14 19:15:24,086 [INFO] Starting ASYNC FastAPI server with parallel processing...
+2025-11-14 19:15:40,023 [INFO] === Starting async video summarization for https://vm.tiktok.com/ZMAv8s4xb/ ===
+2025-11-14 19:15:40,024 [INFO] Detected platform: tiktok
+2025-11-14 19:15:40,026 [INFO] Starting async video download for tiktok...
+2025-11-14 19:15:48,230 [INFO] Video downloaded successfully (2.35 MB)
+2025-11-14 19:15:48,541 [INFO] Video duration: 14.8s
+2025-11-14 19:15:48,541 [INFO] Using settings: {'max_duration': 300, 'base_interval': 2, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/2', 'scene_change_detection': True, 'min_frames': 8}
+2025-11-14 19:15:48,541 [INFO] === PARALLEL PROCESSING: Audio + Frames ===
+2025-11-14 19:15:48,542 [INFO] Starting async audio extraction...
+2025-11-14 19:15:48,568 [INFO] Starting async frame extraction...
+2025-11-14 19:15:48,989 [INFO] Audio extracted successfully in 0.45s
+2025-11-14 19:15:49,445 [INFO] Extracted 1 frames in 0.88s
+2025-11-14 19:15:49,445 [INFO] === PARALLEL PROCESSING COMPLETED in 0.90s ===
+2025-11-14 19:15:49,446 [INFO] === PARALLEL PROCESSING: Transcription + Captions ===
+2025-11-14 19:15:49,446 [INFO] Starting audio transcription...
+2025-11-14 19:15:49,446 [INFO] Starting async frame caption generation...
+2025-11-14 19:15:57,359 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-11-14 19:15:57,377 [INFO] Generated 6 captions in 7.93s
+2025-11-14 19:16:01,488 [INFO] Transcription completed in 12.04s
+2025-11-14 19:16:01,505 [INFO] === AI PROCESSING COMPLETED in 12.06s ===
+2025-11-14 19:16:01,505 [INFO] Starting async summary generation...
+2025-11-14 19:16:27,086 [INFO] Summary generated in 25.58s
+2025-11-14 19:16:27,089 [INFO] === TOTAL PROCESSING TIME: 47.07s ===
+2025-11-14 19:20:04,703 [INFO] === Starting async video summarization for https://youtu.be/biJHe3M4kIU?si=8keIgFgAkizNlRVY ===
+2025-11-14 19:20:04,704 [INFO] Detected platform: youtube
+2025-11-14 19:20:04,706 [INFO] Starting async video download for youtube...
+2025-11-14 19:20:42,340 [INFO] Video downloaded successfully (22.36 MB)
+2025-11-14 19:20:42,420 [INFO] Video duration: 563.9s
+2025-11-14 19:20:42,420 [INFO] Using settings: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 30, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-11-14 19:20:42,420 [INFO] === PARALLEL PROCESSING: Audio + Frames ===
+2025-11-14 19:20:42,421 [INFO] Starting async audio extraction...
+2025-11-14 19:20:42,428 [INFO] Starting async frame extraction...
+2025-11-14 19:20:57,898 [INFO] Extracted 30 frames in 15.47s
+2025-11-14 19:20:58,772 [INFO] Audio extracted successfully in 16.35s
+2025-11-14 19:20:58,773 [INFO] === PARALLEL PROCESSING COMPLETED in 16.35s ===
+2025-11-14 19:20:58,773 [INFO] === PARALLEL PROCESSING: Transcription + Captions ===
+2025-11-14 19:20:58,774 [INFO] Starting async frame caption generation...
+2025-11-14 19:20:58,774 [INFO] Starting audio transcription...
+2025-11-14 19:21:14,024 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-11-14 19:21:14,025 [INFO] Retrying request to /chat/completions in 0.467207 seconds
+2025-11-14 19:21:20,056 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-11-14 19:21:20,058 [INFO] Retrying request to /chat/completions in 0.780108 seconds
+2025-11-14 19:21:26,419 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 429 Too Many Requests"
+2025-11-14 19:21:26,425 [ERROR] Caption generation error: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o-mini in organization org-8FQRlVDEVsktpOzTMkT0JigW on tokens per min (TPM): Limit 100000, Used 88778, Requested 23218. Please try again in 86h22m16.32s. Visit https://platform.openai.com/account/rate-limits to learn more. You can increase your rate limit by adding a payment method to your account at https://platform.openai.com/account/billing.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+2025-11-14 19:23:25,480 [INFO] Transcription completed in 146.71s
+2025-11-14 19:23:25,485 [INFO] === AI PROCESSING COMPLETED in 146.71s ===
+2025-11-14 19:23:25,485 [INFO] Starting async summary generation...
+2025-11-14 19:23:55,881 [INFO] Summary generated in 30.40s
+2025-11-14 19:23:55,909 [INFO] === TOTAL PROCESSING TIME: 231.21s ===
+2025-12-06 01:42:00,054 [INFO] Starting ASYNC FastAPI server with parallel processing...
+2025-12-06 01:44:41,278 [INFO] === Starting async video summarization for https://youtu.be/acPWazlTvBI?si=23j85-C9we12EYv8 ===
+2025-12-06 01:44:41,279 [INFO] Detected platform: youtube
+2025-12-06 01:44:41,280 [INFO] Starting async video download for youtube...
+2025-12-06 01:51:56,417 [ERROR] Download failed: WARNING: [youtube] No supported JavaScript runtime could be found. YouTube extraction without a JS runtime has been deprecated, and some formats may be missing. See  https://github.com/yt-dlp/yt-dlp/wiki/EJS  for details on installing one. To silence this warning, you can use  --extractor-args "youtube:player_client=default"
+WARNING: [youtube] acPWazlTvBI: Some web_safari client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+WARNING: [youtube] acPWazlTvBI: Some web client https formats have been skipped as they are missing a url. YouTube is forcing SABR streaming for this client. See  https://github.com/yt-dlp/yt-dlp/issues/12482  for more details
+ERROR: [download] Got error: ('Connection aborted.', ConnectionResetError(10054, 'An existing connection was forcibly closed by the remote host', None, 10054, None)). Giving up after 10 retries
+
+2025-12-06 01:51:56,419 [ERROR] Error during async summarization
+Traceback (most recent call last):
+  File "C:\Users\NEPC\Desktop\Video_Analysis_web_app\main.py", line 668, in summarize_video
+    raise HTTPException(status_code=400, detail="Failed to download video")
+fastapi.exceptions.HTTPException: 400: Failed to download video
+2025-12-06 01:57:27,281 [INFO] === Starting async video summarization for https://youtu.be/acPWazlTvBI?si=23j85-C9we12EYv8 ===
+2025-12-06 01:57:27,282 [INFO] Detected platform: youtube
+2025-12-06 01:57:27,286 [INFO] Starting async video download for youtube...
+2025-12-06 01:58:47,453 [INFO] Video downloaded successfully (273.99 MB)
+2025-12-06 01:58:47,541 [INFO] Video duration: 705.2s
+2025-12-06 01:58:47,542 [INFO] Using settings: {'max_duration': 1800, 'base_interval': 10, 'max_frames': 23, 'audio_priority': True, 'fps_filter': 'fps=1/15', 'scene_change_detection': False, 'min_frames': 8}
+2025-12-06 01:58:47,542 [INFO] === PARALLEL PROCESSING: Audio + Frames ===
+2025-12-06 01:58:47,542 [INFO] Starting async audio extraction...
+2025-12-06 01:58:47,551 [INFO] Starting async frame extraction...
+2025-12-06 01:59:01,275 [INFO] Audio extracted successfully in 13.73s
+2025-12-06 01:59:42,249 [INFO] Extracted 23 frames in 54.70s
+2025-12-06 01:59:42,250 [INFO] === PARALLEL PROCESSING COMPLETED in 54.71s ===
+2025-12-06 01:59:42,250 [INFO] === PARALLEL PROCESSING: Transcription + Captions ===
+2025-12-06 01:59:42,253 [INFO] Starting audio transcription...
+2025-12-06 01:59:42,254 [INFO] Starting async frame caption generation...
+2025-12-06 02:00:08,212 [INFO] HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2025-12-06 02:00:08,235 [INFO] Generated 35 captions in 25.98s
+2025-12-06 02:02:34,095 [INFO] Transcription completed in 171.84s
+2025-12-06 02:02:34,129 [INFO] === AI PROCESSING COMPLETED in 171.88s ===
+2025-12-06 02:02:34,129 [INFO] Starting async summary generation...
+2025-12-06 02:02:46,857 [INFO] Summary generated in 12.73s
+2025-12-06 02:02:46,934 [INFO] === TOTAL PROCESSING TIME: 319.65s ===

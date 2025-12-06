@@ -1,29 +1,32 @@
 import logging
 from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import subprocess
 import os
-import requests
 import shutil
 import base64
 import uvicorn
 import whisper
 import google.generativeai as genai
-import re
-from urllib.parse import urlparse
-from typing import Union, Any
+from typing import Any, List
 from openai import OpenAI
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+import time
+from frame_transcript_matcher import (
+    process_video_frames_with_transcript,
+    get_batch_analysis_prompt,
+    FrameBatch
+)
 
 # ---------------- Logging Setup ----------------
 logging.basicConfig(
-    level=logging.INFO,  # Change to DEBUG for more details
+    level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("app.log"),  # Save logs to a file
-        logging.StreamHandler()          # Also log to console
+        logging.FileHandler("app.log"),
+        logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
@@ -34,7 +37,7 @@ app = FastAPI()
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with frontend domain in production
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,10 +55,13 @@ if not GEMINI_API_KEY:
 
 # Configure OpenAI and Gemini
 client = OpenAI(api_key=OPENAI_KEY)
-genai.configure(api_key=GEMINI_API_KEY) # type: ignore
+genai.configure(api_key=GEMINI_API_KEY)
 
 WORK_DIR = "video_jobs"
 os.makedirs(WORK_DIR, exist_ok=True)
+
+# Thread pool for CPU-bound tasks
+executor = ThreadPoolExecutor(max_workers=4)
 
 
 class VideoRequest(BaseModel):
@@ -82,49 +88,59 @@ def identify_platform(url: str) -> str:
 
 def get_platform_specific_options(platform: str) -> list:
     """Get yt-dlp options specific to each platform"""
-    base_options = ["yt-dlp", "--get-url"]
+    base_options = ["yt-dlp", "--output", "-"]  # Output to stdout for streaming
     
     if platform == 'tiktok':
-        # TikTok-specific options
         return base_options + [
-            "-f", "best[height<=720]/best",  # Prefer 720p or lower for faster processing
+            "-f", "best[height<=720]/best",
             "--no-check-certificate",
-            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "--referer", "https://www.tiktok.com/",
+            "--no-playlist",
+            "--ignore-config",
+            "--geo-bypass",
+            "--geo-bypass-country", "US",
+            # Remove cookie option that's causing DPAPI errors
+            "--no-check-certificate"
         ]
     elif platform == 'twitter':
-        # Twitter-specific options
         return base_options + [
             "-f", "best[height<=720]/best",
-            "--no-check-certificate"
+            "--no-check-certificate",
+            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "--referer", "https://twitter.com/"
         ]
     elif platform == 'instagram':
-        # Instagram-specific options
         return base_options + [
             "-f", "best[height<=720]/best",
-            "--no-check-certificate"
+            "--no-check-certificate",
+            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "--referer", "https://www.instagram.com/"
         ]
     else:
-        # Default options for other platforms
-        return base_options + ["-f", "best[ext=mp4]/best"]
+        return base_options + [
+            "-f", "best[ext=mp4]/best",
+            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "--no-check-certificate"
+        ]
 
 
-def get_enhanced_platform_analysis_settings(platform: str, video_duration: float |None = None) -> dict:
-    """Get analysis settings optimized for each platform with adaptive sampling"""
-    
+def get_enhanced_platform_analysis_settings(platform: str, video_duration: float = None) -> dict:
+    """Get analysis settings optimized for each platform"""
     base_settings = {
         'tiktok': {
             'max_duration': 300,
-            'base_interval': 3,  # Reduced for better coverage of quick transitions
+            'base_interval': 3,
             'max_frames': 30,
             'audio_priority': True,
             'fps_filter': 'fps=1/3',
-            'scene_change_detection': True,  # Important for TikTok cuts
-            'min_frames': 8  # Ensure minimum coverage
+            'scene_change_detection': True,
+            'min_frames': 8
         },
         'twitter': {
             'max_duration': 140,
-            'base_interval': 3,  # Reduced for better short video coverage
-            'max_frames': 30,  # Increased slightly
+            'base_interval': 3,
+            'max_frames': 30,
             'audio_priority': True,
             'fps_filter': 'fps=1/3',
             'scene_change_detection': True,
@@ -132,7 +148,7 @@ def get_enhanced_platform_analysis_settings(platform: str, video_duration: float
         },
         'instagram': {
             'max_duration': 300,
-            'base_interval': 10,  # Better for stories/reels
+            'base_interval': 10,
             'max_frames': 30,
             'audio_priority': True,
             'fps_filter': 'fps=1/5',
@@ -141,16 +157,16 @@ def get_enhanced_platform_analysis_settings(platform: str, video_duration: float
         },
         'youtube': {
             'max_duration': 1800,
-            'base_interval': 10,  # Reduced from 30s
-            'max_frames': 30,  # Increased from 10
+            'base_interval': 10,
+            'max_frames': 30,
             'audio_priority': True,
             'fps_filter': 'fps=1/15',
-            'scene_change_detection': False,  # Less critical for longer content
+            'scene_change_detection': False,
             'min_frames': 8
         },
         'default': {
             'max_duration': 600,
-            'base_interval': 8,  # More frequent than 15s
+            'base_interval': 8,
             'max_frames': 30,
             'audio_priority': True,
             'fps_filter': 'fps=1/8',
@@ -161,113 +177,192 @@ def get_enhanced_platform_analysis_settings(platform: str, video_duration: float
     
     settings = base_settings.get(platform, base_settings['default']).copy()
     
-    # Adaptive adjustment based on video duration
     if video_duration:
-        # For very short videos, sample more frequently
         if video_duration <= 30:
             settings['base_interval'] = min(settings['base_interval'], 2)
             settings['fps_filter'] = 'fps=1/2'
-        # For very long videos, ensure we don't miss key moments
         elif video_duration > 600:
             settings['max_frames'] = min(25, int(video_duration / 30))
     
     return settings
 
 
-def get_video_duration(direct_video_url: str) -> float:
-    """Get video duration using ffprobe"""
+async def download_video_async(url: str, platform: str, output_path: str) -> bool:
+    """Download video to local file asynchronously"""
+    logger.info(f"Starting async video download for {platform}...")
+    
     try:
-        cmd = [
-            "ffprobe", "-v", "quiet", "-print_format", "json", 
-            "-show_format", direct_video_url
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        if result.returncode == 0:
-            import json
-            data = json.loads(result.stdout)
-            duration = float(data.get("format", {}).get("duration", 0))
-            logger.info(f"Video duration: {duration:.1f} seconds")
-            return duration
+        # Get platform-specific options but change output to file
+        cmd_options = ["yt-dlp", "-o", output_path, "-f", "best[height<=720]/best"]
+        
+        if platform == 'tiktok':
+            cmd_options.extend([
+                "--no-check-certificate",
+                "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                "--referer", "https://www.tiktok.com/",
+                "--no-playlist",
+                "--geo-bypass"
+            ])
+        
+        cmd_options.append(url)
+        
+        # Run subprocess asynchronously
+        process = await asyncio.create_subprocess_exec(
+            *cmd_options,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        
+        stdout, stderr = await process.communicate()
+        
+        if process.returncode == 0 and os.path.exists(output_path):
+            file_size = os.path.getsize(output_path) / (1024 * 1024)  # MB
+            logger.info(f"Video downloaded successfully ({file_size:.2f} MB)")
+            return True
+        else:
+            logger.error(f"Download failed: {stderr.decode()}")
+            return False
+            
     except Exception as e:
-        logger.warning(f"Could not get video duration: {e}")
-    
-    return 0
+        logger.error(f"Video download error: {e}")
+        return False
 
 
-def get_advanced_frame_extraction_cmd(direct_video_url: str, frames_dir: str, settings: dict) -> list:
-    """Generate advanced FFmpeg command for better frame extraction"""
+async def extract_audio_async(video_path: str, audio_path: str, max_duration: int) -> bool:
+    """Extract audio from video asynchronously"""
+    logger.info("Starting async audio extraction...")
+    start_time = time.time()
     
-    base_cmd = [
-        "ffmpeg", "-i", direct_video_url,
-        "-t", str(settings['max_duration'])
-    ]
-    
-    # Scene change detection for platforms that need it
-    if settings.get('scene_change_detection', False):
-        # Combine regular interval + scene change detection
-        # This will capture frames at regular intervals AND when scene changes occur
-        video_filter = f"select='gte(t*{1/settings['base_interval']},n)+gt(scene,0.3)',scale=-1:720"
-    else:
-        # Standard interval-based extraction
-        video_filter = f"fps={1/settings['base_interval']},scale=-1:720"
-    
-    cmd = base_cmd + [
-        "-vf", video_filter,
-        "-vsync", "vfr",  # Variable frame rate to handle scene detection
-        "-frame_pts", "1",  # Preserve timing info
-        "-threads", "4",
-        "-preset", "ultrafast",
-        "-q:v", "2",  # Higher quality frames for better vision model input
-        f"{frames_dir}/frame_%04d.jpg"
-    ]
-    
-    return cmd
+    try:
+        audio_cmd = [
+            "ffmpeg", "-i", video_path,
+            "-t", str(max_duration),
+            "-q:a", "0",
+            "-map", "a",
+            "-ac", "1",
+            "-ar", "16000",
+            audio_path, "-y"
+        ]
+        
+        process = await asyncio.create_subprocess_exec(
+            *audio_cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        
+        stdout, stderr = await process.communicate()
+        
+        elapsed = time.time() - start_time
+        
+        if process.returncode == 0 and os.path.exists(audio_path):
+            logger.info(f"Audio extracted successfully in {elapsed:.2f}s")
+            return True
+        else:
+            logger.warning(f"Audio extraction failed after {elapsed:.2f}s")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Audio extraction error: {e}")
+        return False
 
 
-def validate_frame_coverage(frame_files: list, video_duration: float, platform: str) -> dict:
-    """Validate if frame extraction provides good coverage"""
+async def extract_frames_async(video_path: str, frames_dir: str, settings: dict) -> list:
+    """Extract frames from video asynchronously"""
+    logger.info("Starting async frame extraction...")
+    start_time = time.time()
     
-    if not frame_files:
-        return {"status": "failed", "reason": "No frames extracted"}
+    try:
+        # Build frame extraction command
+        if settings.get('scene_change_detection', False):
+            video_filter = f"select='gte(t*{1/settings['base_interval']},n)+gt(scene,0.3)',scale=-1:720"
+        else:
+            video_filter = f"fps={1/settings['base_interval']},scale=-1:720"
+        
+        frame_cmd = [
+            "ffmpeg", "-i", video_path,
+            "-t", str(settings['max_duration']),
+            "-vf", video_filter,
+            "-vsync", "vfr",
+            "-frame_pts", "1",
+            "-threads", "4",
+            "-preset", "ultrafast",
+            "-q:v", "2",
+            f"{frames_dir}/frame_%04d.jpg"
+        ]
+        
+        process = await asyncio.create_subprocess_exec(
+            *frame_cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        
+        stdout, stderr = await process.communicate()
+        
+        elapsed = time.time() - start_time
+        
+        if process.returncode == 0:
+            frame_files = sorted([f for f in os.listdir(frames_dir) if f.endswith('.jpg')])
+            frame_files = frame_files[:settings['max_frames']]
+            logger.info(f"Extracted {len(frame_files)} frames in {elapsed:.2f}s")
+            return frame_files
+        else:
+            logger.error(f"Frame extraction failed after {elapsed:.2f}s")
+            return []
+            
+    except Exception as e:
+        logger.error(f"Frame extraction error: {e}")
+        return []
+
+
+def transcribe_audio_sync(audio_path: str, platform: str) -> tuple[str, str]:
+    """Transcribe audio synchronously (runs in thread pool)"""
+    logger.info("Starting audio transcription...")
+    start_time = time.time()
     
-    settings = get_enhanced_platform_analysis_settings(platform, video_duration)
-    min_frames = settings.get('min_frames', 5)
-    
-    coverage_ratio = len(frame_files) / video_duration if video_duration > 0 else 0
-    
-    if len(frame_files) < min_frames:
-        return {
-            "status": "insufficient", 
-            "reason": f"Only {len(frame_files)} frames for {video_duration:.1f}s video",
-            "recommendation": "Reduce frame interval"
-        }
-    
-    # Platform-specific coverage validation
-    if platform == 'tiktok' and coverage_ratio < 0.2:  # At least 1 frame per 5 seconds
-        return {
-            "status": "sparse",
-            "reason": "TikTok content changes quickly, need more frames",
-            "recommendation": "Increase sampling rate"
-        }
-    
-    if platform == 'youtube' and len(frame_files) > 20:
-        return {
-            "status": "excessive",
-            "reason": "Too many frames may overwhelm vision model",
-            "recommendation": "Consider key moment detection"
-        }
-    
-    return {
-        "status": "good",
-        "frames": len(frame_files),
-        "coverage_ratio": coverage_ratio,
-        "duration": video_duration
-    }
+    try:
+        if not os.path.exists(audio_path) or os.path.getsize(audio_path) < 1024:
+            return "", ""
+        
+        model = whisper.load_model("base")
+        whisper_result = model.transcribe(
+            audio_path,
+            word_timestamps=True,
+            task="transcribe"
+        )
+        
+        transcript_with_timestamps = []
+        transcript_text_only = ""
+        
+        if "segments" in whisper_result:
+            for segment in whisper_result["segments"]:
+                start_time_seg = segment.get("start", 0)
+                end_time = segment.get("end", 0)
+                text = segment.get("text", "").strip()
+                
+                if text:
+                    start_formatted = f"{int(start_time_seg//60):02d}:{int(start_time_seg%60):02d}"
+                    end_formatted = f"{int(end_time//60):02d}:{int(end_time%60):02d}"
+                    transcript_with_timestamps.append(f"[{start_formatted}-{end_formatted}] {text}")
+                    transcript_text_only += text + " "
+        
+        elapsed = time.time() - start_time
+        logger.info(f"Transcription completed in {elapsed:.2f}s")
+        
+        return transcript_text_only.strip(), "\n".join(transcript_with_timestamps)
+        
+    except Exception as e:
+        logger.error(f"Transcription error: {e}")
+        return "", ""
+
+
+def encode_image(image_path: str) -> str:
+    """Encode image to base64"""
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
 
 def get_platform_optimized_vision_prompt(platform: str, frame_count: int) -> str:
-    """Generate optimized prompts for vision model based on platform"""
-    
+    """Generate optimized prompts for vision model"""
     platform_contexts = {
         'tiktok': {
             'focus': "viral trends, text overlays, effects, transitions, gaming, music/dance, comedy skits",
@@ -313,126 +408,147 @@ Provide Frame 1, Frame 2, etc. with 1-2 concise sentences each.
 Focus on elements that help understand the video's purpose and appeal to {platform} users."""
 
 
-def get_direct_video_url(url: str) -> tuple[str, str]:
-    """Extract direct video URL using yt-dlp subprocess"""
-    logger.info(f"Extracting direct video URL for: {url}")
+async def generate_batch_descriptions_async(
+    batches: List[FrameBatch],
+    frames_dir: str,
+    platform: str
+) -> List[dict]:
+    """
+    Generate descriptions for each batch of frames with transcript context
     
-    platform = identify_platform(url)
-    logger.info(f"Detected platform: {platform}")
+    Args:
+        batches: List of FrameBatch objects
+        frames_dir: Directory containing extracted frames
+        platform: Video platform
     
-    try:
-        if platform == 'direct':
-            logger.info("URL is already a direct video file")
-            return url, platform
-
-        # Get platform-specific options
-        cmd_options = get_platform_specific_options(platform)
-        cmd_options.append(url)
-        
-        logger.info(f"Running yt-dlp with options: {' '.join(cmd_options[:-1])} [URL]")
-        
-        result = subprocess.run(
-            cmd_options,
-            capture_output=True, 
-            text=True, 
-            timeout=45  # Increased timeout for social media platforms
-        )
-        
-        if result.returncode != 0:
-            logger.error(f"yt-dlp failed: {result.stderr}")
+    Returns:
+        List of batch descriptions with metadata
+    """
+    logger.info(f"Generating descriptions for {len(batches)} batches...")
+    batch_results = []
+    
+    for batch in batches:
+        try:
+            # Prepare content with frames and prompt
+            prompt = get_batch_analysis_prompt(batch, platform)
             
-            # Try with more generic options if platform-specific failed
-            if platform != 'unknown':
-                logger.info("Retrying with generic options...")
-                generic_cmd = ["yt-dlp", "--get-url", "-f", "best", url]
-                result = subprocess.run(
-                    generic_cmd,
-                    capture_output=True, text=True, timeout=30
-                )
+            content: list[Any] = [{"type": "text", "text": prompt}]
+            
+            # Add frames to the request
+            for frame in batch.frames:
+                frame_path = os.path.join(frames_dir, frame.filename)
                 
-                if result.returncode != 0:
-                    raise HTTPException(status_code=400, detail=f"yt-dlp error: {result.stderr}")
-            else:
-                raise HTTPException(status_code=400, detail=f"yt-dlp error: {result.stderr}")
+                if not os.path.exists(frame_path):
+                    logger.warning(f"Frame file not found: {frame_path}")
+                    continue
+                
+                try:
+                    base64_image = encode_image(frame_path)
+                    content.extend([
+                        {"type": "text", "text": f"\nFrame {frame.frame_number} (~{int(frame.timestamp)}s):"},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{base64_image}",
+                                "detail": "low"
+                            }
+                        }
+                    ])
+                except Exception as e:
+                    logger.error(f"Error encoding frame {frame.filename}: {e}")
+                    continue
+            
+            messages: list[Any] = [{"role": "user", "content": content}]
+            
+            # Call vision API
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(
+                executor,
+                lambda: client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=messages,
+                    max_tokens=2000,
+                    temperature=0.3
+                )
+            )
+            
+            description = response.choices[0].message.content
+            
+            batch_result = {
+                "batch_number": batch.batch_number,
+                "frame_count": len(batch.frames),
+                "time_range": f"{int(batch.start_time)}s - {int(batch.end_time)}s",
+                "transcript": batch.combined_transcript,
+                "description": description,
+                "frames": [
+                    {
+                        "number": f.frame_number,
+                        "filename": f.filename,
+                        "timestamp": round(f.timestamp, 2)
+                    }
+                    for f in batch.frames
+                ]
+            }
+            
+            batch_results.append(batch_result)
+            logger.info(f"Batch {batch.batch_number} description generated ({len(batch.frames)} frames)")
+            
+        except Exception as e:
+            logger.error(f"Error generating description for batch {batch.batch_number}: {e}")
+            batch_results.append({
+                "batch_number": batch.batch_number,
+                "error": str(e),
+                "frame_count": len(batch.frames)
+            })
+    
+    return batch_results
 
-        direct_url = result.stdout.strip()
-        logger.info(f"Extracted direct URL: {direct_url[:100]}...")
-        return direct_url, platform
 
-    except subprocess.TimeoutExpired:
-        logger.error("yt-dlp timeout")
-        raise HTTPException(status_code=408, detail="Timeout while extracting video URL")
-    except Exception as e:
-        logger.exception("Failed to extract video URL")
-        raise HTTPException(status_code=400, detail=f"Failed to extract video URL: {str(e)}")
-
-
-def encode_image(image_path: str) -> str:
-    """Encode image to base64 for OpenAI Vision API"""
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode('utf-8')
-
-
-def generate_frame_captions_with_openai(frames_dir: str, frame_files: list, platform: str) -> list:
-    """Generate captions for video frames using OpenAI Vision API in a single call"""
+async def generate_frame_captions_async(frames_dir: str, frame_files: list, platform: str) -> list:
+    """Generate captions for frames asynchronously"""
+    logger.info("Starting async frame caption generation...")
+    start_time = time.time()
+    
     frame_summaries = []
-    
-    # Get platform-optimized prompt
     platform_prompt = get_platform_optimized_vision_prompt(platform, len(frame_files))
-
-    # Prepare content list with proper typing
-    content: list[Any] = [
-        {
-            "type": "text",
-            "text": platform_prompt
-        }
-    ]
     
-    # Add all images to the content list
+    content: list[Any] = [{"type": "text", "text": platform_prompt}]
+    
     for idx, fname in enumerate(frame_files, start=1):
         frame_path = os.path.join(frames_dir, fname)
         try:
             base64_image = encode_image(frame_path)
             content.extend([
-                {
-                    "type": "text",
-                    "text": f"\nFrame {idx}:"
-                },
+                {"type": "text", "text": f"\nFrame {idx}:"},
                 {
                     "type": "image_url",
                     "image_url": {
                         "url": f"data:image/jpeg;base64,{base64_image}",
-                        "detail": "low"  # Use low detail for faster processing and lower costs
+                        "detail": "low"
                     }
                 }
             ])
-        except Exception as img_error:
-            logger.error(f"Error reading {fname}: {img_error}")
-            # Skip this frame but continue with others
+        except Exception as e:
+            logger.error(f"Error reading {fname}: {e}")
             continue
-
-    # Prepare messages with proper structure
-    messages: list[Any] = [
-        {
-            "role": "user",
-            "content": content
-        }
-    ]
-
-    # Send all frames in a single API call
+    
+    messages: list[Any] = [{"role": "user", "content": content}]
+    
     try:
-        logger.info(f"Sending all {len(frame_files)} frames to OpenAI Vision API in single call...")
-        
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",  # Using gpt-4o-mini for cost efficiency with vision
-            messages=messages,
-            max_tokens=2000,  # Increased for multiple frames
-            temperature=0.3
+        # Run OpenAI API call in thread pool to not block event loop
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            executor,
+            lambda: client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                max_tokens=2000,
+                temperature=0.3
+            )
         )
         
         captions_text = response.choices[0].message.content
         
-        # Parse the response and extract frame captions
         if captions_text:
             lines = captions_text.splitlines()
             for line in lines:
@@ -440,165 +556,37 @@ def generate_frame_captions_with_openai(frames_dir: str, frame_files: list, plat
                 if line and ("frame" in line.lower() or any(char.isdigit() for char in line[:10])):
                     frame_summaries.append(line)
         
-        logger.info(f"Generated {len(frame_summaries)} frame captions in single API call")
+        elapsed = time.time() - start_time
+        logger.info(f"Generated {len(frame_summaries)} captions in {elapsed:.2f}s")
         
-        # Ensure we have captions for all frames (fallback if parsing failed)
-        if len(frame_summaries) < len(frame_files):
-            logger.warning(f"Only got {len(frame_summaries)} captions for {len(frame_files)} frames")
-            # Add generic captions for missing frames
-            for i in range(len(frame_summaries), len(frame_files)):
-                frame_summaries.append(f"Frame {i+1}: Video content frame")
-        
-    except Exception as caption_error:
-        logger.error(f"Error generating captions: {caption_error}")
-        # Fallback: create basic frame descriptions
+    except Exception as e:
+        logger.error(f"Caption generation error: {e}")
         for idx in range(1, len(frame_files) + 1):
-            frame_summaries.append(f"Frame {idx}: Caption generation failed - {platform} video content")
-
+            frame_summaries.append(f"Frame {idx}: {platform} video content")
+    
     return frame_summaries
 
 
-@app.get("/")
-def home():
-    """Serve the main HTML page"""
-    logger.info("Serving homepage")
-    return FileResponse("static/index.html")
-
-
-@app.post("/summarize_video")
-def summarize_video(req: VideoRequest):
-    job_dir, direct_video_url, platform = None, None, None
-    logger.info(f"Received video summarization request for {req.video_url}")
+async def generate_summary_async(transcript: str, transcript_timestamps: str, 
+                                frame_summaries: list, platform: str) -> str:
+    """Generate final summary asynchronously"""
+    logger.info("Starting async summary generation...")
+    start_time = time.time()
     
-    try:
-        direct_video_url, platform = get_direct_video_url(req.video_url)
-        
-        # Get video duration for adaptive settings
-        video_duration = get_video_duration(direct_video_url)
-        
-        # Get enhanced analysis settings
-        analysis_settings = get_enhanced_platform_analysis_settings(platform, video_duration)
-        
-        logger.info(f"Using enhanced analysis settings for {platform}: {analysis_settings}")
-
-        # Setup working directories
-        job_dir = os.path.join(WORK_DIR, "job")
-        if os.path.exists(job_dir):
-            shutil.rmtree(job_dir)
-        os.makedirs(job_dir, exist_ok=True)
-        audio_path = f"{job_dir}/audio.mp3"
-        frames_dir = f"{job_dir}/frames"
-        os.makedirs(frames_dir, exist_ok=True)
-
-        # 1. Extract audio using platform-optimized settings
-        transcript = ""
-        logger.info("Extracting audio with platform-optimized FFmpeg settings...")
-        
-        try:
-            # Use platform-specific duration limit
-            audio_cmd = [
-                "ffmpeg", "-i", direct_video_url, 
-                "-t", str(analysis_settings['max_duration']),
-                "-q:a", "0",   # High quality audio
-                "-map", "a",   # Map only audio stream
-                "-ac", "1",    # Convert to mono
-                "-ar", "16000", # 16kHz sample rate
-                audio_path, "-y"
-            ]
-            
-            result = subprocess.run(audio_cmd, capture_output=True, text=True, timeout=120)
-            
-            if result.returncode != 0:
-                logger.warning(f"FFmpeg audio extraction failed: {result.stderr}")
-                logger.info("Proceeding with visual-only analysis")
-            else:
-                logger.info("Audio extracted successfully with platform-optimized settings")
-                
-        except subprocess.TimeoutExpired:
-            logger.warning("FFmpeg audio extraction timed out")
-            logger.info("Proceeding with visual-only analysis")
-        except Exception as e:
-            logger.warning(f"Audio extraction failed: {e}")
-            logger.info("Proceeding with visual-only analysis")
-
-        # 2. Transcribe with platform awareness
-        if os.path.exists(audio_path) and os.path.getsize(audio_path) > 1024:
-            try:
-                logger.info(f"Transcribing {platform} audio with Whisper...")
-                model = whisper.load_model("base")
-                whisper_result = model.transcribe(audio_path)
-                transcript = whisper_result["text"].strip() # type: ignore
-                
-                if transcript:
-                    logger.info(f"Transcript generated successfully ({len(transcript)} characters)")
-                else:
-                    logger.info(f"Transcript is empty - likely music/{platform} video without speech")
-                    transcript = ""
-                    
-            except Exception as whisper_error:
-                logger.warning(f"Whisper transcription failed: {whisper_error}")
-                transcript = ""
-
-        # 3. Extract frames with enhanced settings
-        logger.info(f"Extracting frames with enhanced settings for {platform}...")
-        try:
-            frame_cmd = get_advanced_frame_extraction_cmd(direct_video_url, frames_dir, analysis_settings)
-            
-            result = subprocess.run(frame_cmd, capture_output=True, text=True, timeout=180)
-            
-            if result.returncode != 0:
-                logger.error(f"FFmpeg frame extraction failed: {result.stderr}")
-                # Fallback to simple extraction
-                logger.info("Attempting fallback frame extraction...")
-                fallback_cmd = [
-                    "ffmpeg", "-i", direct_video_url, 
-                    "-t", str(min(analysis_settings['max_duration'], 300)),
-                    "-vf", f"fps={1/analysis_settings['base_interval']},scale=-1:720",
-                    "-threads", "4",
-                    "-preset", "ultrafast",
-                    "-q:v", "3",
-                    f"{frames_dir}/frame_%04d.jpg"
-                ]
-                result = subprocess.run(fallback_cmd, capture_output=True, text=True, timeout=120)
-                
-                if result.returncode != 0:
-                    raise HTTPException(status_code=400, detail="Failed to extract frames")
-                
-        except subprocess.TimeoutExpired:
-            logger.error("Frame extraction timed out")
-            raise HTTPException(status_code=408, detail="Frame extraction timed out")
-            
-        frame_files = sorted([f for f in os.listdir(frames_dir) if f.endswith('.jpg')])
-        
-        # Limit frames based on platform settings
-        frame_files = frame_files[:analysis_settings['max_frames']]
-        
-        # Validate frame coverage
-        coverage_info = validate_frame_coverage(frame_files, video_duration, platform)
-        logger.info(f"Frame coverage validation: {coverage_info}")
-        
-        logger.info(f"Extracted {len(frame_files)} frames for enhanced {platform} analysis")
-
-        # 4. Generate captions with enhanced OpenAI Vision
-        logger.info("Generating enhanced frame captions with OpenAI Vision API...")
-        frame_summaries = generate_frame_captions_with_openai(frames_dir, frame_files, platform)
-        logger.info(f"Generated {len(frame_summaries)} enhanced frame captions")
-
-        # 5. Generate platform-aware summary using Gemini
-        platform_summary_context = {
-            'tiktok': "This is a TikTok video. Summarize with a focus on short-form engagement: social trends, gaming, music/audio elements, viral hooks, and visual effects.",
-            'twitter': "This is a Twitter video. Summarize with a focus on news, current events, viral reactions, or discussions that trend on the platform.",
-            'instagram': "This is an Instagram video. Summarize with a focus on lifestyle, aesthetics, reels/stories, visual creativity, and shareability.",
-            'youtube': "This is a YouTube video. Summarize with a focus on educational material, tutorials, entertainment, gaming, or documentary-style storytelling.",
-            'default': "This is a video. Provide a clear and engaging summary of what the content is about."
-        }
-        
-        if transcript:
-            combined_context = f"""
+    platform_summary_context = {
+        'tiktok': "This is a TikTok video. Summarize with a focus on short-form engagement: social trends, gaming, music/audio elements, viral hooks, and visual effects.",
+        'twitter': "This is a Twitter video. Summarize with a focus on news, current events, viral reactions, or discussions that trend on the platform.",
+        'instagram': "This is an Instagram video. Summarize with a focus on lifestyle, aesthetics, reels/stories, visual creativity, and shareability.",
+        'youtube': "This is a YouTube video. Summarize with a focus on educational material, tutorials, entertainment, gaming, or documentary-style storytelling.",
+        'default': "This is a video. Provide a clear and engaging summary of what the content is about."
+    }
+    
+    if transcript:
+        combined_context = f"""
 {platform_summary_context.get(platform, platform_summary_context['default'])}
 
-TRANSCRIPT:
-{transcript[:2000]}
+AUDIO TRANSCRIPT WITH TIMESTAMPS:
+{transcript_timestamps}
 
 VISUAL SNAPSHOTS (enhanced frame analysis with {len(frame_summaries)} frames):
 {chr(10).join(frame_summaries)}
@@ -607,12 +595,13 @@ TASK:
 Provide a structured, detailed summary that combines both the audio and visual elements. 
 
 1. Identify what the video is about (e.g., gaming → name the game, anime → name the anime, educational → name the topic, music → name the song/artist, Dance → name the dance).
-2. Highlight all the key points or moments along with the timestamp using the transcribed audio if its available and understandable (e.g., timestamps, scenes, or sections of interest).
-3. Explain the key benefits of watchng the {platform.upper()} video (trends, entertainment, learning value, cultural relevance, etc.).
-4. Write in a clear, audience-friendly way (easy to read, short paragraphs, avoid jargon).
-"""  
-        else:
-            combined_context = f"""
+2. Highlight all the key points or moments using the EXACT TIMESTAMPS from the transcribed audio above (e.g., "At [00:15-00:25], the speaker discusses..." or "Between [01:30-01:45], we see...").
+3. Reference specific timestamps when describing visual elements that align with the audio.
+4. Explain the key benefits of watching the {platform.upper()} video (trends, entertainment, learning value, cultural relevance, etc.).
+5. Write in a clear, audience-friendly way (easy to read, short paragraphs, avoid jargon).
+"""
+    else:
+        combined_context = f"""
 {platform_summary_context.get(platform, platform_summary_context['default'])}
 
 VISUAL SNAPSHOTS (enhanced frame analysis with {len(frame_summaries)} frames):
@@ -622,76 +611,342 @@ TASK:
 Provide a structured, detailed summary of this video using only the enhanced visual analysis.
 
 1. Identify the type of content (music, dance, anime, gaming, tutorial, lifestyle, etc.).
-2. Mention any recognizable people, characters, brands(if not famous, classify as upcoming/independent).
+2. Mention any recognizable people, characters, brands (if not famous, classify as upcoming/independent).
 3. Highlight visual trends, styles, and effects that make it engaging for {platform.upper()} users.
 4. Explain the likely audience appeal (why someone would watch/share it).
 """
-        logger.info(f"Requesting enhanced {platform}-aware summary from Gemini...")
-        try:
-            model = genai.GenerativeModel("gemini-2.5-flash")  # type: ignore
-            response = model.generate_content(combined_context)
-            summary = response.text
-            logger.info(f"Enhanced platform-aware summary generated successfully for {platform}")
-            
-        except Exception as e:
-            logger.error(f"Gemini summary generation failed: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Failed to generate summary: {str(e)}")
+    
+    try:
+        loop = asyncio.get_event_loop()
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        response = await loop.run_in_executor(
+            executor,
+            lambda: model.generate_content(combined_context)
+        )
+        
+        elapsed = time.time() - start_time
+        logger.info(f"Summary generated in {elapsed:.2f}s")
+        
+        return response.text
+        
+    except Exception as e:
+        logger.error(f"Summary generation error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate summary: {str(e)}")
 
+
+@app.get("/")
+def home():
+    """Serve the main HTML page"""
+    return FileResponse("static/index.html")
+
+
+@app.post("/summarize_video")
+async def summarize_video(req: VideoRequest):
+    """Main async endpoint for video summarization with parallel processing"""
+    job_dir = None
+    overall_start = time.time()
+    
+    logger.info(f"=== Starting async video summarization for {req.video_url} ===")
+    
+    try:
+        # Step 1: Identify platform and setup
+        platform = identify_platform(req.video_url)
+        logger.info(f"Detected platform: {platform}")
+        
+        job_dir = os.path.join(WORK_DIR, f"job_{int(time.time())}")
+        os.makedirs(job_dir, exist_ok=True)
+        
+        video_path = f"{job_dir}/video.mp4"
+        audio_path = f"{job_dir}/audio.mp3"
+        frames_dir = f"{job_dir}/frames"
+        os.makedirs(frames_dir, exist_ok=True)
+        
+        # Step 2: Download video first
+        download_success = await download_video_async(req.video_url, platform, video_path)
+        
+        if not download_success:
+            raise HTTPException(status_code=400, detail="Failed to download video")
+        
+        # Get video duration
+        duration_result = await asyncio.create_subprocess_exec(
+            "ffprobe", "-v", "quiet", "-print_format", "json",
+            "-show_format", video_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, _ = await duration_result.communicate()
+        
+        video_duration = 0
+        try:
+            import json
+            data = json.loads(stdout.decode())
+            video_duration = float(data.get("format", {}).get("duration", 0))
+            logger.info(f"Video duration: {video_duration:.1f}s")
+        except:
+            logger.warning("Could not determine video duration")
+        
+        analysis_settings = get_enhanced_platform_analysis_settings(platform, video_duration)
+        logger.info(f"Using settings: {analysis_settings}")
+        
+        # Step 3: Run audio extraction and frame extraction IN PARALLEL
+        logger.info("=== PARALLEL PROCESSING: Audio + Frames ===")
+        parallel_start = time.time()
+        
+        audio_task = extract_audio_async(video_path, audio_path, analysis_settings['max_duration'])
+        frames_task = extract_frames_async(video_path, frames_dir, analysis_settings)
+        
+        # Wait for both to complete
+        audio_success, frame_files = await asyncio.gather(audio_task, frames_task)
+        
+        parallel_elapsed = time.time() - parallel_start
+        logger.info(f"=== PARALLEL PROCESSING COMPLETED in {parallel_elapsed:.2f}s ===")
+        
+        # Step 4: Run transcription and caption generation IN PARALLEL
+        logger.info("=== PARALLEL PROCESSING: Transcription + Captions ===")
+        ai_start = time.time()
+        
+        # Transcription in thread pool (CPU-bound)
+        loop = asyncio.get_event_loop()
+        transcription_task = loop.run_in_executor(
+            executor,
+            transcribe_audio_sync,
+            audio_path,
+            platform
+        )
+        
+        # Caption generation (API call)
+        captions_task = generate_frame_captions_async(frames_dir, frame_files, platform)
+        
+        # Wait for both to complete
+        (transcript, transcript_timestamps), frame_summaries = await asyncio.gather(
+            transcription_task,
+            captions_task
+        )
+        
+        ai_elapsed = time.time() - ai_start
+        logger.info(f"=== AI PROCESSING COMPLETED in {ai_elapsed:.2f}s ===")
+        
+        # Step 5: Generate final summary
+        summary = await generate_summary_async(
+            transcript,
+            transcript_timestamps,
+            frame_summaries,
+            platform
+        )
+        
         # Cleanup
         shutil.rmtree(job_dir)
-        logger.info("Cleaned up job directory")
-
+        
+        overall_elapsed = time.time() - overall_start
+        logger.info(f"=== TOTAL PROCESSING TIME: {overall_elapsed:.2f}s ===")
+        
         return {
             "summary": summary,
             "platform": platform,
-            "transcript_excerpt": transcript[:500] if transcript else f"No transcript available (music/{platform} video)",
+            "transcript_excerpt": transcript[:500] if transcript else f"No transcript (music/{platform} video)",
             "frames_analyzed": len(frame_files),
-            "frames_used": frame_files,
-            "original_url": req.video_url,
-            "processing_url": direct_video_url[:100] + "...",
             "has_audio_transcript": bool(transcript.strip()),
             "video_duration": video_duration,
-            "frame_coverage_info": coverage_info,
-            "analysis_settings_used": analysis_settings,
-            "vision_api_used": "OpenAI GPT-4 Vision (Enhanced)",
+            "processing_time": {
+                "total": round(overall_elapsed, 2),
+                "parallel_extraction": round(parallel_elapsed, 2),
+                "ai_processing": round(ai_elapsed, 2)
+            },
+            "performance_improvement": "Parallel processing enabled",
+            "vision_api_used": "OpenAI GPT-4 Vision",
             "enhancements": [
-                "Adaptive frame sampling",
-                "Scene change detection",
-                "Platform-optimized prompts",
-                "Enhanced frame quality",
-                "Coverage validation"
+                "Async parallel processing",
+                "Simultaneous audio + frame extraction",
+                "Concurrent transcription + caption generation",
+                "Local video download for reliability"
             ]
         }
-
+        
     except Exception as e:
-        logger.exception("Unexpected error during summarization")
+        logger.exception("Error during async summarization")
         if job_dir and os.path.exists(job_dir):
             shutil.rmtree(job_dir)
         raise
 
 
-# Health check endpoint
+@app.post("/analyze_video_with_batches")
+async def analyze_video_with_batches(req: VideoRequest):
+    """
+    New endpoint: Extract frames, match to transcript, and generate batch descriptions
+    This approach reduces AI API load by batching frames with their corresponding transcript
+    """
+    job_dir = None
+    overall_start = time.time()
+    
+    logger.info(f"=== Starting batch analysis for {req.video_url} ===")
+    
+    try:
+        # Step 1: Identify platform and setup
+        platform = identify_platform(req.video_url)
+        logger.info(f"Detected platform: {platform}")
+        
+        job_dir = os.path.join(WORK_DIR, f"job_{int(time.time())}")
+        os.makedirs(job_dir, exist_ok=True)
+        
+        video_path = f"{job_dir}/video.mp4"
+        audio_path = f"{job_dir}/audio.mp3"
+        frames_dir = f"{job_dir}/frames"
+        metadata_dir = f"{job_dir}/batch_metadata"
+        os.makedirs(frames_dir, exist_ok=True)
+        os.makedirs(metadata_dir, exist_ok=True)
+        
+        # Step 2: Download video
+        download_success = await download_video_async(req.video_url, platform, video_path)
+        
+        if not download_success:
+            raise HTTPException(status_code=400, detail="Failed to download video")
+        
+        # Step 3: Get video duration
+        duration_result = await asyncio.create_subprocess_exec(
+            "ffprobe", "-v", "quiet", "-print_format", "json",
+            "-show_format", video_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, _ = await duration_result.communicate()
+        
+        video_duration = 0
+        try:
+            import json as json_module
+            data = json_module.loads(stdout.decode())
+            video_duration = float(data.get("format", {}).get("duration", 0))
+            logger.info(f"Video duration: {video_duration:.1f}s")
+        except:
+            logger.warning("Could not determine video duration")
+        
+        analysis_settings = get_enhanced_platform_analysis_settings(platform, video_duration)
+        
+        # Step 4: Extract audio and transcribe
+        logger.info("Extracting and transcribing audio...")
+        audio_success = await extract_audio_async(video_path, audio_path, analysis_settings['max_duration'])
+        
+        if not audio_success:
+            raise HTTPException(status_code=400, detail="Failed to extract audio")
+        
+        # Transcribe audio
+        loop = asyncio.get_event_loop()
+        model = whisper.load_model("base")
+        whisper_result = await loop.run_in_executor(
+            executor,
+            lambda: model.transcribe(audio_path, word_timestamps=True, task="transcribe")
+        )
+        
+        # Step 5: Process frames with transcript matching
+        logger.info("Processing frames with transcript matching (2 FPS)...")
+        batches, stats = await process_video_frames_with_transcript(
+            video_path=video_path,
+            whisper_result=whisper_result,
+            frames_dir=frames_dir,
+            metadata_dir=metadata_dir,
+            fps=2.0,  # 2 frames per second as requested
+            max_duration=analysis_settings['max_duration'],
+            batch_size=10  # 10 frames per batch
+        )
+        
+        if not batches:
+            raise HTTPException(status_code=400, detail="Failed to create frame batches")
+        
+        logger.info(f"Created {len(batches)} batches with frame-transcript matching")
+        
+        # Step 6: Generate descriptions for each batch
+        logger.info("Generating descriptions for each batch...")
+        batch_descriptions = await generate_batch_descriptions_async(
+            batches=batches,
+            frames_dir=frames_dir,
+            platform=platform
+        )
+        
+        # Step 7: Create comprehensive summary
+        logger.info("Creating comprehensive summary...")
+        
+        summary_content = f"""
+BATCH-BASED VIDEO ANALYSIS REPORT
+==================================
+
+Video Platform: {platform.upper()}
+Total Duration: {video_duration:.1f} seconds
+Frame Extraction: 2 FPS
+Total Batches: {len(batches)}
+Frames per Batch: 10
+Total Frames Analyzed: {stats.get('total_frames', 'N/A')}
+
+BATCH SUMMARIES:
+"""
+        
+        for batch_desc in batch_descriptions:
+            if "error" not in batch_desc:
+                summary_content += f"""
+Batch {batch_desc['batch_number']} ({batch_desc['time_range']})
+{'-' * 40}
+Frames: {batch_desc['frame_count']}
+Transcript: {batch_desc['transcript']}
+Description:
+{batch_desc['description']}
+
+"""
+            else:
+                summary_content += f"Batch {batch_desc['batch_number']}: Error - {batch_desc['error']}\n"
+        
+        # Cleanup
+        shutil.rmtree(job_dir)
+        
+        overall_elapsed = time.time() - overall_start
+        logger.info(f"=== TOTAL PROCESSING TIME: {overall_elapsed:.2f}s ===")
+        
+        return {
+            "status": "success",
+            "platform": platform,
+            "video_duration": video_duration,
+            "total_batches": len(batches),
+            "total_frames_analyzed": stats.get('total_frames', 0),
+            "frames_per_batch": 10,
+            "extraction_fps": 2.0,
+            "batch_descriptions": batch_descriptions,
+            "comprehensive_summary": summary_content,
+            "processing_stats": stats,
+            "processing_time_seconds": round(overall_elapsed, 2),
+            "methodology": "Frame extraction at 2 FPS with transcript matching and batch-based AI analysis"
+        }
+        
+    except Exception as e:
+        logger.exception("Error during batch analysis")
+        if job_dir and os.path.exists(job_dir):
+            shutil.rmtree(job_dir)
+        raise
+
+
 @app.get("/health")
 def health_check():
     """Health check endpoint"""
     return {
-        "status": "healthy", 
+        "status": "healthy",
+        "processing_mode": "Async with Parallel Execution + Batch Analysis",
         "supported_platforms": ["TikTok", "Twitter/X", "Instagram", "YouTube", "Direct URLs"],
         "yt_dlp_available": shutil.which("yt-dlp") is not None,
         "ffmpeg_available": shutil.which("ffmpeg") is not None,
         "ffprobe_available": shutil.which("ffprobe") is not None,
-        "vision_api": "OpenAI GPT-4 Vision (Enhanced)",
-        "summary_api": "Google Gemini",
-        "enhancements": [
-            "Adaptive frame sampling based on video duration",
-            "Scene change detection for dynamic content",
-            "Platform-specific analysis settings",
-            "Enhanced frame quality and coverage validation",
-            "Platform-optimized vision prompts"
-        ]
+        "features": [
+            "Parallel audio + frame extraction",
+            "Concurrent transcription + caption generation",
+            "Local video download",
+            "Adaptive frame sampling",
+            "Platform-optimized analysis",
+            "NEW: Frame-transcript matching at 2 FPS",
+            "NEW: Batch-based AI analysis (reduces API calls)",
+            "NEW: Frame-accurate descriptions with transcript context"
+        ],
+        "new_endpoints": {
+            "analyze_video_with_batches": "POST /analyze_video_with_batches - Batch analysis with frame-to-transcript matching",
+            "summarize_video": "POST /summarize_video - Original full summarization"
+        }
     }
 
 
 if __name__ == "__main__":
-    logger.info("Starting enhanced FastAPI server with improved visual analysis...")
+    logger.info("Starting ASYNC FastAPI server with parallel processing...")
     uvicorn.run(app, host="0.0.0.0", port=8000)
