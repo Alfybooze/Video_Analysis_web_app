@@ -1,10 +1,52 @@
-fastapi
-uvicorn
+# Core dependencies
+python-dotenv
 pydantic
-openai
-google-generativeai
+pydantic-settings
+
+# Video/Audio processing
+ffmpeg-python
+opencv-python
+pillow
+
+# ML/AI models
+torch
+torchvision
+transformers
 openai-whisper
+sentence-transformers
+
+# Vector stores
+faiss-cpu
+# Alternative: milvus==2.3.0
+
+# Embeddings
+open-clip-torch
+
+# LLM Integration
+google-generativeai
+anthropic  # Alternative to Gemini
+
+# Utilities
+numpy
+pandas
+tqdm
 requests
-python-multipart
-httpx
 aiohttp
+python-multipart
+
+# API/Service
+fastapi
+uvicorn[standard]
+python-jose[cryptography]
+
+# Database (optional, for metadata)
+sqlalchemy
+alembic
+
+# Testing
+pytest
+pytest-asyncio
+pytest-cov
+
+# Logging
+loguru

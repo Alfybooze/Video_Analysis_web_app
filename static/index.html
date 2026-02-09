@@ -484,7 +484,173 @@
                 opacity: 1;
             }
         }
+                .search-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 30px;
+            display: none;
+        }
 
+        .search-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 14px 18px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #a78bfa;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .search-btn {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(96, 165, 250, 0.4);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .search-results {
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 4px solid #60a5fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .search-result-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .search-result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-type {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .result-type.audio {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .result-type.video {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .result-timestamp {
+            color: #a78bfa;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .result-content {
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .result-confidence {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 15px;
+        }
+
+        .search-examples {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .search-examples-title {
+            font-size: 13px;
+            color: #60a5fa;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .search-example-item {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 4px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .search-example-item:hover {
+            background: rgba(96, 165, 250, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+        }
         .error-message {
             background: rgba(239, 68, 68, 0.1);
             border: 2px solid rgba(239, 68, 68, 0.5);
@@ -604,6 +770,43 @@
                 <span>👁️</span>
                 <span>View Raw Summary</span>
             </button>
+        </div>
+                <!-- Search Section -->
+        <div class="search-section" id="searchSection">
+            <h3 class="section-title">
+                <span>🔍</span>
+                <span>Search Video Content</span>
+            </h3>
+            
+            <div class="search-input-group">
+                <input type="text" class="search-input" id="searchQuery" 
+                    placeholder="Ask questions about the video content...">
+                <button class="search-btn" id="searchBtn">
+                    <span>🔍</span>
+                    <span>Search</span>
+                </button>
+            </div>
+
+            <div class="search-examples">
+                <div class="search-examples-title">
+                    <span>💡</span>
+                    <span>Try these searches:</span>
+                </div>
+                <div class="search-example-item" onclick="setSearchQuery('What is the main topic?')">
+                    • What is the main topic?
+                </div>
+                <div class="search-example-item" onclick="setSearchQuery('Find key moments')">
+                    • Find key moments
+                </div>
+                <div class="search-example-item" onclick="setSearchQuery('What objects appear?')">
+                    • What objects appear?
+                </div>
+                <div class="search-example-item" onclick="setSearchQuery('Summarize the audio')">
+                    • Summarize the audio
+                </div>
+            </div>
+
+            <div id="searchResults"></div>
         </div>
     </div>
 
@@ -773,6 +976,8 @@
             setTimeout(() => {
                 summaryCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 300);
+            // Show search section
+            showSearchSection();
         }
 
         function showError(message) {
@@ -818,6 +1023,127 @@
                 `);
             }
         });
+
+        // Search functionality
+        const searchSection = document.getElementById('searchSection');
+        const searchQuery = document.getElementById('searchQuery');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchResults = document.getElementById('searchResults');
+
+        function setSearchQuery(query) {
+            searchQuery.value = query;
+            searchQuery.focus();
+        }
+
+        async function searchVideo() {
+            const query = searchQuery.value.trim();
+            
+            if (!query) {
+                showError('Please enter a search query');
+                return;
+            }
+
+            if (!currentRawSummary) {
+                showError('Please summarize a video first');
+                return;
+            }
+
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<span>⏳</span><span>Searching...</span>';
+
+            try {
+                const response = await fetch(`${API_URL}/search_video`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        query: query,
+                        query_type: 'both',
+                        top_k: 5
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to search video');
+                }
+
+                const data = await response.json();
+                displaySearchResults(data.results);
+
+            } catch (error) {
+                searchResults.innerHTML = `
+                    <div class="no-results">
+                        ❌ ${error.message || 'An error occurred while searching'}
+                    </div>
+                `;
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = '<span>🔍</span><span>Search</span>';
+            }
+        }
+
+        function displaySearchResults(results) {
+            let html = '';
+            
+            if (results.audio_results && results.audio_results.metadata.length > 0) {
+                html += '<h4 style="color: #22c55e; margin-bottom: 12px;">🎵 Audio Results</h4>';
+                results.audio_results.metadata.forEach((result, index) => {
+                    html += `
+                        <div class="search-result-item">
+                            <div class="result-type audio">Audio</div>
+                            <div class="result-timestamp">${formatTimestamp(result.timestamp)}</div>
+                            <div class="result-content">${result.text || 'No text content'}</div>
+                            <div class="result-confidence">Confidence: ${(result.confidence * 100).toFixed(1)}%</div>
+                        </div>
+                    `;
+                });
+            }
+
+            if (results.video_results && results.video_results.metadata.length > 0) {
+                html += '<h4 style="color: #3b82f6; margin: 20px 0 12px 0;">🎬 Video Results</h4>';
+                results.video_results.metadata.forEach((result, index) => {
+                    html += `
+                        <div class="search-result-item">
+                            <div class="result-type video">Video</div>
+                            <div class="result-timestamp">${formatTimestamp(result.timestamp)}</div>
+                            <div class="result-content">Frame ${result.frame_index} - ${result.metadata?.description || 'Visual content'}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            if (!results.audio_results?.metadata.length && !results.video_results?.metadata.length) {
+                html = `
+                    <div class="no-results">
+                        🔍 No results found for your query<br>
+                        <small style="color: rgba(255,255,255,0.5);">Try a different search term</small>
+                    </div>
+                `;
+            }
+
+            searchResults.innerHTML = html;
+        }
+
+        function formatTimestamp(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Event listeners for search
+        searchBtn.addEventListener('click', searchVideo);
+        searchQuery.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchVideo();
+            }
+        });
+
+        // Show search section after summary is loaded
+        function showSearchSection() {
+            searchSection.classList.add('show');
+        };
     </script>
 </body>
 

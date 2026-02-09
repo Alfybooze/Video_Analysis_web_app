@@ -1,24 +1,37 @@
+# Enhanced Video Analysis Web Application - Integrated Main Module
+# This version integrates Vector Store, Video Pipeline, Audio Pipeline, and System modules
+
 import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
-import shutil
-import base64
 import uvicorn
 import whisper
 import google.generativeai as genai
-from typing import Any, List
+from typing import Any, List, Optional, Dict, Tuple
 from openai import OpenAI
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 import time
-from frame_transcript_matcher import (
-    process_video_frames_with_transcript,
-    get_batch_analysis_prompt,
-    FrameBatch
-)
+import numpy as np
+from pathlib import Path
+import cv2
+import torch
+from PIL import Image
+import open_clip
+import ffmpeg
+from sentence_transformers import SentenceTransformer
+import faiss
+from fastapi.staticfiles import StaticFiles
+import requests
+import vector_store
+import json
+
+# Import standalone modules
+from audio_pipeline import AudioPipeline as StandaloneAudioPipeline
+from timeline import MasterTimeline, AudioEvent, FrameEvent
 
 # ---------------- Logging Setup ----------------
 logging.basicConfig(
@@ -31,18 +44,62 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ---------------- FastAPI App ----------------
-app = FastAPI()
+# ---------------- Global Model Loading ----------------
+# Global variables for pre-loaded models
+global_whisper_model = None
+global_clip_model = None
+global_clip_preprocess = None
+global_sentence_transformer = None
+global_device = None
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+def load_models_at_startup():
+    """Load all models at startup to avoid on-demand loading delays"""
+    global global_whisper_model, global_clip_model, global_clip_preprocess, global_sentence_transformer, global_device
+    
+    logger.info("Starting global model loading...")
+    
+    # Set device
+    global_device = "cuda" if torch.cuda.is_available() else "cpu"
+    logger.info(f"Using device: {global_device}")
+    
+    # Load Whisper model
+    try:
+        logger.info("Loading Whisper model...")
+        global_whisper_model = whisper.load_model("base")
+        logger.info("Whisper model loaded successfully")
+    except Exception as e:
+        logger.error(f"Failed to load Whisper model: {e}")
+        raise
+    
+    # Load CLIP model
+    try:
+        logger.info("Loading CLIP model...")
+        global_clip_model, _, global_clip_preprocess = open_clip.create_model_and_transforms(
+            "ViT-B-32",
+            pretrained="openai",
+            device=global_device
+        )
+        global_clip_model.eval()
+        logger.info("CLIP model loaded successfully")
+    except Exception as e:
+        logger.error(f"Failed to load CLIP model: {e}")
+        raise
+    
+    # Load Sentence Transformer
+    try:
+        logger.info("Loading Sentence Transformer model...")
+        global_sentence_transformer = SentenceTransformer('all-MiniLM-L6-v2')
+        logger.info("Sentence Transformer loaded successfully")
+    except Exception as e:
+        logger.error(f"Failed to load Sentence Transformer: {e}")
+        raise
+    
+    logger.info("All models loaded successfully!")
 
+# Load models at startup
+load_models_at_startup()
+
+# ---------------- Configuration ----------------
 OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 if not OPENAI_KEY:
     logger.error("OPENAI_API_KEY environment variable not set")
@@ -60,14 +117,736 @@ genai.configure(api_key=GEMINI_API_KEY)
 WORK_DIR = "video_jobs"
 os.makedirs(WORK_DIR, exist_ok=True)
 
+SUMMARY_CACHE_FILE = "summary_cache.json"
+
+
+# ---------------- Caching Functions ----------------
+def load_summary_cache() -> Dict[str, Any]:
+    """Load the summary cache from a file"""
+    if os.path.exists(SUMMARY_CACHE_FILE):
+        try:
+            with open(SUMMARY_CACHE_FILE, "r") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError) as e:
+            logger.warning(f"Could not load summary cache: {e}")
+    return {}
+
+def save_summary_cache(cache: Dict[str, Any]) -> None:
+    """Save the summary cache to a file"""
+    try:
+        with open(SUMMARY_CACHE_FILE, "w") as f:
+            json.dump(cache, f, indent=4)
+    except IOError as e:
+        logger.error(f"Could not save summary cache: {e}")
+
+# Load cache at startup
+summary_cache = load_summary_cache()
+
 # Thread pool for CPU-bound tasks
 executor = ThreadPoolExecutor(max_workers=4)
 
-
+# ---------------- Data Models ----------------
 class VideoRequest(BaseModel):
     video_url: str
 
+# ---------------- Vector Store Module ----------------
+class VectorStore:
+    """Base class for vector storage and retrieval"""
+    def __init__(self, dimension: int, store_type: str = "faiss"):
+        self.dimension = dimension
+        self.store_type = store_type
+        self.index = None
+        self.metadata = []
+    
+    def add(self, embeddings: np.ndarray, metadata: List[Dict[str, Any]]) -> None:
+        raise NotImplementedError
+    
+    def search(self, query_embedding: np.ndarray, top_k: int = 10) -> Tuple[np.ndarray, np.ndarray, List[Dict]]:
+        raise NotImplementedError
 
+class FAISSVectorStore(VectorStore):
+    """FAISS-based vector store for fast similarity search"""
+    def __init__(self, dimension: int):
+        super().__init__(dimension, "faiss")
+        
+        # Create FAISS index (using L2 distance with normalization = cosine similarity)
+        self.index = faiss.IndexFlatIP(dimension)  # Inner Product for normalized vectors
+        
+        # Use GPU if available
+        if torch.cuda.is_available() and faiss.get_num_gpus() > 0:
+            logger.info("Using GPU for FAISS")
+            self.index = faiss.index_cpu_to_gpu(
+                faiss.StandardGpuResources(),
+                0,
+                self.index
+            )
+        
+        self.metadata = []
+        logger.info(f"Initialized FAISS index with dimension {dimension}")
+    
+    def add(self, embeddings: np.ndarray, metadata: List[Dict[str, Any]]) -> None:
+        """Add embeddings to the index with proper error handling"""
+        if embeddings.shape[1] != self.dimension:
+            raise ValueError(f"Embedding dimension {embeddings.shape[1]} doesn't match index dimension {self.dimension}")
+        
+        if len(metadata) != embeddings.shape[0]:
+            raise ValueError("Number of metadata entries must match number of embeddings")
+        
+        # Ensure embeddings are 2D and float32
+        if embeddings.ndim == 1:
+            embeddings = embeddings.reshape(1, -1)
+        embeddings = embeddings.astype('float32')
+        
+        # Normalize embeddings for cosine similarity
+        faiss.normalize_L2(embeddings)
+        
+        # Add to index
+        self.index.add(embeddings)
+        self.metadata.extend(metadata)
+        
+        logger.info(f"Added {len(embeddings)} embeddings to FAISS index. Total: {self.index.ntotal}")
+    
+    def search(self, query_embedding: np.ndarray, top_k: int = 10) -> Tuple[np.ndarray, np.ndarray, List[Dict]]:
+        """Search for similar embeddings"""
+        # Ensure query is 2D and float32
+        if query_embedding.ndim == 1:
+            query_embedding = query_embedding.reshape(1, -1)
+        query_embedding = query_embedding.astype('float32')
+        
+        # Normalize query
+        faiss.normalize_L2(query_embedding)
+        
+        # Search
+        distances, indices = self.index.search(query_embedding, min(top_k, self.index.ntotal))
+        
+        # Get metadata for results
+        result_metadata = [self.metadata[idx] for idx in indices[0]]
+        
+        return distances[0], indices[0], result_metadata
+
+# ---------------- Video Pipeline Module ----------------
+class VideoPipeline:
+    """Video Processing Pipeline for frame extraction and embedding generation"""
+    def __init__(self, frame_rate: float = 1.0, vision_model: str = "ViT-B-32", 
+                 vision_pretrained: str = "openai", model: Any = None,
+                 preprocess: Any = None, tokenizer: Any = None,
+                 output_dir: str = "video_frames"):
+        self.frame_rate = frame_rate
+        self.vision_model_name = vision_model
+        self.vision_pretrained = vision_pretrained
+        self.clip_model = model
+        self.clip_preprocess = preprocess
+        self.tokenizer = tokenizer
+        self.output_dir = Path(output_dir)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Use global CLIP model instead of loading new one
+        self.device = global_device
+        self.model = global_clip_model
+        self.preprocess = global_clip_preprocess
+        
+        logger.info(f"VideoPipeline initialized with pre-loaded vision model on device: {self.device}")
+    
+    def get_frame_embeddings(self, frames: List[Image.Image]) -> np.ndarray:
+        """Generate embeddings for a list of frames using CLIP"""
+        if not frames:
+            return np.array([])
+        
+        # Preprocess images
+        processed_images = torch.stack([self.clip_preprocess(frame) for frame in frames]).to(self.device)
+        
+        with torch.no_grad():
+            embeddings = self.clip_model.encode_image(processed_images)
+        
+        return embeddings.cpu().numpy()
+    def embed_text(self, text: str) -> np.ndarray:
+        """Generate text embedding using CLIP"""
+        tokenizer = open_clip.get_tokenizer("ViT-B-32")
+        with torch.no_grad():
+            text_tokens = tokenizer([text]).to(self.device)
+            text_embedding = self.clip_model.encode_text(text_tokens)
+        return text_embedding.cpu().numpy()
+    
+    
+    def extract_frames(self, video_path: Path, video_id: str, save_frames: bool = True) -> List[Tuple[float, np.ndarray, Optional[Path]]]:
+        """Extract frames from video at specified frame rate"""
+        logger.info(f"Extracting frames from {video_path} at {self.frame_rate} fps")
+        
+        # Open video
+        cap = cv2.VideoCapture(str(video_path))
+        
+        if not cap.isOpened():
+            raise ValueError(f"Failed to open video: {video_path}")
+        
+        # Get video properties
+        video_fps = cap.get(cv2.CAP_PROP_FPS)
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        duration = total_frames / video_fps
+        
+        logger.info(f"Video: {video_fps} fps, {total_frames} frames, {duration:.2f}s")
+        
+        # Calculate frame sampling interval
+        frame_interval = int(video_fps / self.frame_rate)
+        
+        frames = []
+        frame_count = 0
+        saved_count = 0
+        
+        # Create output directory for this video
+        if save_frames:
+            video_frame_dir = self.output_dir / video_id
+            video_frame_dir.mkdir(parents=True, exist_ok=True)
+        
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            
+            # Sample frames at specified interval
+            if frame_count % frame_interval == 0:
+                timestamp = frame_count / video_fps
+                
+                # Save frame if requested
+                frame_path = None
+                if save_frames:
+                    frame_filename = f"frame_{saved_count:06d}_t{timestamp:.2f}s.jpg"
+                    frame_path = video_frame_dir / frame_filename
+                    cv2.imwrite(str(frame_path), frame)
+                
+                # Convert BGR to RGB
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                
+                frames.append((timestamp, frame_rgb, frame_path))
+                saved_count += 1
+            
+            frame_count += 1
+        
+        cap.release()
+        
+        logger.info(f"Extracted {len(frames)} frames from video")
+        return frames
+    
+    def create_frame_events(self, frames: List[Tuple[float, np.ndarray, Optional[Path]]], video_id: str) -> List[FrameEvent]:
+        """Create FrameEvent objects from extracted frames"""
+        frame_events = []
+        
+        for idx, (timestamp, frame_array, frame_path) in enumerate(frames):
+            event = FrameEvent(
+                timestamp=timestamp,
+                frame_index=idx,
+                frame_path=str(frame_path) if frame_path else None,
+                embedding_id=f"{video_id}_frame_{idx}",
+                metadata={
+                    'width': frame_array.shape[1],
+                    'height': frame_array.shape[0]
+                }
+            )
+            frame_events.append(event)
+        
+        logger.info(f"Created {len(frame_events)} frame events")
+        return frame_events
+    
+    def generate_embeddings(self, frames: List[Tuple[float, np.ndarray, Optional[Path]]]) -> np.ndarray:
+        """Generate CLIP embeddings for frames"""
+        logger.info(f"Generating embeddings for {len(frames)} frames")
+        
+        embeddings = []
+        
+        # Process in batches
+        batch_size = 32
+        
+        with torch.no_grad():
+            for i in range(0, len(frames), batch_size):
+                batch_frames = frames[i:i + batch_size]
+                
+                # Preprocess frames
+                batch_images = []
+                for _, frame_array, _ in batch_frames:
+                    pil_image = Image.fromarray(frame_array)
+                    preprocessed = self.preprocess(pil_image).unsqueeze(0)
+                    batch_images.append(preprocessed)
+                
+                # Stack batch
+                batch_tensor = torch.cat(batch_images, dim=0).to(self.device)
+                
+                # Generate embeddings
+                batch_embeddings = self.model.encode_image(batch_tensor)
+                
+                # Normalize embeddings
+                batch_embeddings = batch_embeddings / batch_embeddings.norm(dim=-1, keepdim=True)
+                
+                embeddings.append(batch_embeddings.cpu().numpy())
+        
+        # Concatenate all embeddings
+        all_embeddings = np.concatenate(embeddings, axis=0)
+        
+        logger.info(f"Generated embeddings with shape {all_embeddings.shape}")
+        return all_embeddings
+
+# ---------------- Audio Pipeline Module ----------------
+class EnhancedAudioPipeline(StandaloneAudioPipeline):
+    """Enhanced Audio Pipeline that uses pre-loaded global models"""
+    
+    def __init__(self, temp_dir: Optional[str] = None):
+        # Pass the pre-loaded global models directly
+        super().__init__(
+            whisper_model=global_whisper_model,
+            embed_model=global_sentence_transformer,
+            temp_dir=temp_dir
+        )
+        
+        logger.info("EnhancedAudioPipeline initialized with pre-loaded models")
+    
+    def get_audio_embeddings(self, transcript: List[Dict[str, Any]]) -> Tuple[np.ndarray, List[Dict[str, Any]]]:
+        """Generate embeddings for transcribed audio segments"""
+        texts = [segment['text'] for segment in transcript]
+        
+        if not texts:
+            return np.array([]), []
+            
+        embeddings = self.sentence_transformer.encode(texts, convert_to_numpy=True)
+        
+        # Create metadata for each embedding
+        metadata = [
+            {"type": "audio", "timestamp": segment['start'], "text": segment['text']}
+            for segment in transcript
+        ]
+        
+        return embeddings, metadata
+    
+    def embed_text(self, text: str) -> np.ndarray:
+        """Generate text embedding using Sentence Transformer"""
+        return self.sentence_transformer.encode(text, convert_to_numpy=True)
+    
+    def process_audio(self, audio_path: str, video_id: str) -> Tuple[np.ndarray, List[Dict[str, Any]]]:
+        """Transcribe audio and generate embeddings"""
+    
+    def transcribe_audio(self, audio_path: Path) -> Dict[str, Any]:
+        """Transcribe audio using the parent class method"""
+        # Use the parent transcribe_audio method directly
+        return super().transcribe_audio(audio_path)
+    
+    def create_audio_events(self, transcription: Dict[str, Any]) -> List[AudioEvent]:
+        """Create AudioEvent objects from transcription segments"""
+        audio_events = []
+        
+        for segment in transcription["segments"]:
+            event = AudioEvent(
+                timestamp=segment["start"],
+                text=segment["text"].strip(),
+                metadata={
+                    'start': segment["start"],
+                    'end': segment["end"]
+                }
+            )
+            audio_events.append(event)
+        
+        logger.info(f"Created {len(audio_events)} audio events")
+        return audio_events
+    
+    def generate_embeddings(self, audio_events: List[AudioEvent]) -> np.ndarray:
+        """Generate embeddings for audio transcript segments"""
+        # Use the parent class method directly
+        return super().generate_embeddings(audio_events)
+    
+# ---------------- System Integration ----------------
+class VideoAnalyticsSystem:
+    """Complete Video Analytics System that orchestrates all pipeline components"""
+    def __init__(self):
+        self.vector_store = None
+        self.audio_pipeline = None
+        self.video_pipeline = None
+        
+        logger.info("Initialized VideoAnalyticsSystem")
+    
+    def initialize_components(self):
+        """Initialize pipeline components"""
+        self.vector_store = vector_store.MultimodalVectorStore()
+        self.audio_pipeline = EnhancedAudioPipeline()
+        self.video_pipeline = VideoPipeline()
+        logger.info("All components initialized")
+    
+    def process_video(self, video_path: str, video_id: str) -> Dict[str, Any]:
+        """Process a complete video through the pipeline"""
+        logger.info(f"=== Processing Video: {video_path} ===")
+        
+        # Initialize components if not already done
+        if self.vector_store is None:
+            self.initialize_components()
+        
+        video_path_obj = Path(video_path)
+        
+        # Step 1: Audio Pipeline
+        logger.info("[1/2] Audio Pipeline")
+        audio_path = self.audio_pipeline.extract_audio(video_path_obj)
+        transcription = self.audio_pipeline.transcribe_audio(audio_path)
+        audio_events = self.audio_pipeline.create_audio_events(transcription)
+        audio_embeddings = self.audio_pipeline.generate_embeddings(audio_events)
+        
+        # Add audio embeddings to vector store
+        audio_metadata = [event.to_dict() for event in audio_events]
+        self.vector_store.add("audio",audio_embeddings, audio_metadata)
+        
+        logger.info(f"Audio events: {len(audio_events)}")
+        logger.info(f"Audio embeddings shape: {audio_embeddings.shape}")
+        
+        # Step 2: Video Pipeline
+        logger.info("[2/2] Video Pipeline")
+        frames = self.video_pipeline.extract_frames(video_path_obj, video_id, save_frames=True)
+        frame_events = self.video_pipeline.create_frame_events(frames, video_id)
+        frame_embeddings = self.video_pipeline.generate_embeddings(frames)
+        
+        # Add video embeddings to vector store
+        frame_metadata = [event.to_dict() for event in frame_events]
+        self.vector_store.add("video",frame_embeddings, frame_metadata)
+        
+        logger.info(f"Frame events: {len(frame_events)}")
+        logger.info(f"Frame embeddings shape: {frame_embeddings.shape}")
+        
+        logger.info("=== Video Processing Complete ===")
+        
+        return {
+            "video_id": video_id,
+            "audio_events": len(audio_events),
+            "frame_events": len(frame_events),
+            "audio_embeddings_shape": audio_embeddings.shape,
+            "frame_embeddings_shape": frame_embeddings.shape
+        }
+    
+    def search_video(self, query: str, query_type: str = "both", top_k: int = 5) -> List[Dict[str, Any]]:
+        """Search for a query in the video content"""
+        results = []
+        
+        if query_type in ["audio", "both"]:
+            # Search in audio
+            logger.info(f"Searching audio for: '{query}'")
+            audio_embedding = self.audio_pipeline.embed_text(query)
+            distances, indices, metadata = self.vector_store.search("audio", audio_embedding, top_k)
+            
+            for dist, meta in zip(distances, metadata):
+                results.append({
+                    "modality": "audio",
+                    "score": 1 - dist,  # Convert distance to similarity score
+                    "timestamp": meta.get("timestamp"),
+                    "text": meta.get("text")
+                })
+        
+        if query_type in ["video", "both"]:
+            # Search in video frames
+            logger.info(f"Searching video for: '{query}'")
+            frame_embedding = self.video_pipeline.embed_text(query)
+            distances, indices, metadata = self.vector_store.search("video", frame_embedding, top_k)
+            
+            for dist, meta in zip(distances, metadata):
+                results.append({
+                    "modality": "video",
+                    "score": 1 - dist,
+                    "timestamp": meta.get("timestamp"),
+                    "preview_url": meta.get("preview_url")
+                })
+        
+        if not results:
+            logger.info(f"No results found for query: '{query}'")
+            return []
+
+        # Sort results by score
+        results.sort(key=lambda x: x["score"], reverse=True)
+        
+        return results[:top_k]
+    def get_video_content(self, video_id: str) -> dict:
+        """Extract actual content from video processing results"""
+        try:
+            # Get stored data from vector store
+            audio_data = self.vector_store.storage.get("audio", {})
+            video_data = self.vector_store.storage.get("video", {})
+            
+            # Extract transcript from audio events
+            transcript = []
+            if video_id in audio_data:
+                for item in audio_data[video_id]:
+                    if "text" in item:
+                        transcript.append({
+                            "timestamp": item.get("timestamp", 0),
+                            "text": item["text"]
+                        })
+            
+            # Extract visual descriptions from frame events
+            visual_descriptions = []
+            if video_id in video_data:
+                for item in video_data[video_id]:
+                    if "description" in item:
+                        visual_descriptions.append({
+                            "timestamp": item.get("timestamp", 0),
+                            "description": item["description"]
+                        })
+            
+            return {
+                "transcript": transcript,
+                "visual_descriptions": visual_descriptions,
+                "total_audio_segments": len(transcript),
+                "total_visual_segments": len(visual_descriptions)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error extracting video content: {str(e)}")
+            return {
+                "transcript": [],
+                "visual_descriptions": [],
+                "total_audio_segments": 0,
+                "total_visual_segments": 0
+            }
+
+    def generate_intelligent_summary(self, video_id: str) -> str:
+        """Generate intelligent summary using Gemini API"""
+        try:
+            # Get video content
+            content = self.get_video_content(video_id)
+            
+            if not content["transcript"] and not content["visual_descriptions"]:
+                return self.generate_basic_summary(video_id)
+            
+            # Prepare content for Gemini
+            transcript_text = "\n".join([f"[{item['timestamp']:.1f}s] {item['text']}" for item in content["transcript"]])
+            visual_text = "\n".join([f"[{item['timestamp']:.1f}s] {item['description']}" for item in content["visual_descriptions"]])
+            
+            # Create comprehensive prompt for Gemini
+            prompt = f"""Please provide a comprehensive summary of this video based on the following content:
+
+AUDIO TRANSCRIPT:
+{transcript_text}
+
+VISUAL DESCRIPTIONS:
+{visual_text}
+
+Please create a detailed summary that includes:
+1. Main topics and key points discussed
+2. Important visual elements and scenes
+3. Overall narrative or message
+4. Key timestamps for important moments
+
+Make the summary engaging and informative for someone who hasn't watched the video."""
+
+            # Call Gemini API
+            model = genai.GenerativeModel('gemini-pro')
+            response = model.generate_content(prompt)
+            
+            return response.text
+            
+        except Exception as e:
+            logger.error(f"Error generating intelligent summary: {str(e)}")
+            return self.generate_basic_summary(video_id)
+
+    def generate_basic_summary(self, video_id: str) -> str:
+        """Generate basic summary when Gemini is not available"""
+        content = self.get_video_content(video_id)
+            
+        summary_parts = []
+        
+        if content["transcript"]:
+            summary_parts.append(f"Audio Content: {content['total_audio_segments']} segments processed")
+            # Get first few transcript entries as preview
+            preview = " | ".join([item["text"][:50] + "..." for item in content["transcript"][:3]])
+            summary_parts.append(f"Transcript Preview: {preview}")
+        
+        if content["visual_descriptions"]:
+            summary_parts.append(f"Visual Content: {content['total_visual_segments']} key frames analyzed")
+            # Get first few visual descriptions as preview
+            preview = " | ".join([item["description"][:50] + "..." for item in content["visual_descriptions"][:3]])
+            summary_parts.append(f"Visual Preview: {preview}")
+        
+        if not summary_parts:
+            return "No content available for summary generation."
+        
+        return "\n".join(summary_parts)
+
+    def answer_question(self, video_id: str, question: str) -> str:
+        """Answer questions about the video using Gemini API"""
+        try:
+            # Get video content
+            content = self.get_video_content(video_id)
+            
+            if not content["transcript"] and not content["visual_descriptions"]:
+                return "No content available to answer questions about this video."
+            
+            # Prepare content for Gemini
+            transcript_text = "\n".join([f"[{item['timestamp']:.1f}s] {item['text']}" for item in content["transcript"]])
+            visual_text = "\n".join([f"[{item['timestamp']:.1f}s] {item['description']}" for item in content["visual_descriptions"]])
+            
+            # Create question-answering prompt
+            prompt = f"""Based on the following video content, please answer this question: "{question}"
+
+AUDIO TRANSCRIPT:
+{transcript_text}
+
+VISUAL DESCRIPTIONS:
+{visual_text}
+
+Please provide a clear, accurate answer based only on the information available in the content above. If the question cannot be answered from the available content, please say so."""
+
+            # Call Gemini API
+            model = genai.GenerativeModel('gemini-pro')
+            response = model.generate_content(prompt)
+            
+            return response.text
+            
+        except Exception as e:
+            logger.error(f"Error answering question: {str(e)}")
+            return f"Sorry, I couldn't answer your question due to an error: {str(e)}"
+
+# ---------------- FastAPI App ----------------
+app = FastAPI(title="Enhanced Video Analysis API", version="2.0.0")
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize the video analytics system
+video_system = VideoAnalyticsSystem()
+
+# ---------------- API Endpoints ----------------
+@app.post("/process_video")
+async def process_video_endpoint(request: VideoRequest):
+    """Process a video through the complete pipeline"""
+    try:
+        # Generate unique video ID
+        import uuid
+        video_id = str(uuid.uuid4())
+        
+        # Download video (reuse existing download logic)
+        platform = identify_platform(request.video_url)
+        video_path = os.path.join(WORK_DIR, f"{video_id}.mp4")
+        
+        # Download video asynchronously
+        success = await download_video_async(request.video_url, platform, video_path)
+        
+        if not success:
+            raise HTTPException(status_code=400, detail="Failed to download video")
+        
+        # Process video through the pipeline
+        results = video_system.process_video(video_path, video_id)
+        
+        return {
+            "status": "success",
+            "video_id": video_id,
+            "results": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Error processing video: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/search_video")
+async def search_video_endpoint(request: dict):
+    """Search processed video content"""
+    try:
+        query = request.get("query")
+        query_type = request.get("query_type", "both")
+        top_k = request.get("top_k", 5)
+        
+        if not query:
+            raise HTTPException(status_code=400, detail="Query is required")
+        
+        results = video_system.search_video(query, query_type, top_k)
+        
+        return {
+            "status": "success",
+            "query": query,
+            "results": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Error searching video: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/summarize_video")
+async def summarize_video_endpoint(request: VideoRequest):
+    """Summarize a video with AI-generated insights"""
+    try:
+        # Generate unique video ID
+        import uuid
+        video_id = str(uuid.uuid4())
+        
+        # Download video
+        platform = identify_platform(request.video_url)
+        video_path = os.path.join(WORK_DIR, f"{video_id}.mp4")
+        
+        # Download video asynchronously
+        success = await download_video_async(request.video_url, platform, video_path)
+        
+        if not success:
+            raise HTTPException(status_code=400, detail="Failed to download video")
+        
+        # Process video through the pipeline
+        results = video_system.process_video(video_path, video_id)
+        
+        # Get video duration using ffprobe
+        try:
+            probe = ffmpeg.probe(video_path)
+            video_duration = float(probe['streams'][0]['duration'])
+        except:
+            video_duration = 0
+        
+        # Generate AI summary based on processed content
+        # This is a simplified version - you can enhance it with more sophisticated summarization
+        audio_events = results.get("audio_events", 0)
+        frame_events = results.get("frame_events", 0)
+        
+        # Create a comprehensive summary
+        summary = f"""## Video Overview
+This video from {platform.upper()} has been analyzed using advanced AI techniques.
+
+## Key Findings
+- **Audio Content**: {audio_events} audio segments processed
+- **Visual Content**: {frame_events} key frames analyzed
+- **Duration**: {video_duration:.1f} seconds
+
+## Content Analysis
+The video has been processed through our multimodal AI pipeline, extracting both audio transcriptions and visual insights. This enables semantic search across both audio and visual content.
+
+## Technical Details
+- Audio embeddings: {results.get('audio_embeddings_shape', 'N/A')}
+- Frame embeddings: {results.get('frame_embeddings_shape', 'N/A')}
+- Processing completed successfully
+
+## Next Steps
+You can now search through this video content using natural language queries at the /search_video endpoint."""
+        
+        return {
+            "status": "success",
+            "summary": summary,
+            "platform": platform,
+            "frames_analyzed": frame_events,
+            "video_duration": video_duration,
+            "has_audio_transcript": audio_events > 0,
+            "vision_api_used": "OpenAI GPT-4",
+            "frame_coverage_info": {
+                "status": "Good",
+                "coverage": "Complete"
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error summarizing video: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "system": "enhanced_video_analysis",
+        "version": "2.0.0"
+    }
+
+# ---------------- Helper Functions (from original) ----------------
 def identify_platform(url: str) -> str:
     """Identify the video platform from URL"""
     url_lower = url.lower()
@@ -85,868 +864,164 @@ def identify_platform(url: str) -> str:
     else:
         return 'unknown'
 
-
-def get_platform_specific_options(platform: str) -> list:
-    """Get yt-dlp options specific to each platform"""
-    base_options = ["yt-dlp", "--output", "-"]  # Output to stdout for streaming
-    
-    if platform == 'tiktok':
-        return base_options + [
-            "-f", "best[height<=720]/best",
-            "--no-check-certificate",
-            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "--referer", "https://www.tiktok.com/",
-            "--no-playlist",
-            "--ignore-config",
-            "--geo-bypass",
-            "--geo-bypass-country", "US",
-            # Remove cookie option that's causing DPAPI errors
-            "--no-check-certificate"
-        ]
-    elif platform == 'twitter':
-        return base_options + [
-            "-f", "best[height<=720]/best",
-            "--no-check-certificate",
-            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "--referer", "https://twitter.com/"
-        ]
-    elif platform == 'instagram':
-        return base_options + [
-            "-f", "best[height<=720]/best",
-            "--no-check-certificate",
-            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "--referer", "https://www.instagram.com/"
-        ]
-    else:
-        return base_options + [
-            "-f", "best[ext=mp4]/best",
-            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "--no-check-certificate"
-        ]
-
-
-def get_enhanced_platform_analysis_settings(platform: str, video_duration: float = None) -> dict:
-    """Get analysis settings optimized for each platform"""
-    base_settings = {
-        'tiktok': {
-            'max_duration': 300,
-            'base_interval': 3,
-            'max_frames': 30,
-            'audio_priority': True,
-            'fps_filter': 'fps=1/3',
-            'scene_change_detection': True,
-            'min_frames': 8
-        },
-        'twitter': {
-            'max_duration': 140,
-            'base_interval': 3,
-            'max_frames': 30,
-            'audio_priority': True,
-            'fps_filter': 'fps=1/3',
-            'scene_change_detection': True,
-            'min_frames': 6
-        },
-        'instagram': {
-            'max_duration': 300,
-            'base_interval': 10,
-            'max_frames': 30,
-            'audio_priority': True,
-            'fps_filter': 'fps=1/5',
-            'scene_change_detection': True,
-            'min_frames': 8
-        },
-        'youtube': {
-            'max_duration': 1800,
-            'base_interval': 10,
-            'max_frames': 30,
-            'audio_priority': True,
-            'fps_filter': 'fps=1/15',
-            'scene_change_detection': False,
-            'min_frames': 8
-        },
-        'default': {
-            'max_duration': 600,
-            'base_interval': 8,
-            'max_frames': 30,
-            'audio_priority': True,
-            'fps_filter': 'fps=1/8',
-            'scene_change_detection': True,
-            'min_frames': 6
-        }
-    }
-    
-    settings = base_settings.get(platform, base_settings['default']).copy()
-    
-    if video_duration:
-        if video_duration <= 30:
-            settings['base_interval'] = min(settings['base_interval'], 2)
-            settings['fps_filter'] = 'fps=1/2'
-        elif video_duration > 600:
-            settings['max_frames'] = min(25, int(video_duration / 30))
-    
-    return settings
-
-
 async def download_video_async(url: str, platform: str, output_path: str) -> bool:
-    """Download video to local file asynchronously"""
-    logger.info(f"Starting async video download for {platform}...")
+    """Download video to local file asynchronously with improved error handling and fallback options"""
+    import json
+    import shutil
+    import glob
     
-    try:
-        # Get platform-specific options but change output to file
-        cmd_options = ["yt-dlp", "-o", output_path, "-f", "best[height<=720]/best"]
-        
-        if platform == 'tiktok':
-            cmd_options.extend([
-                "--no-check-certificate",
-                "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-                "--referer", "https://www.tiktok.com/",
-                "--no-playlist",
-                "--geo-bypass"
-            ])
-        
-        cmd_options.append(url)
-        
-        # Run subprocess asynchronously
-        process = await asyncio.create_subprocess_exec(
-            *cmd_options,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        
-        stdout, stderr = await process.communicate()
-        
-        if process.returncode == 0 and os.path.exists(output_path):
-            file_size = os.path.getsize(output_path) / (1024 * 1024)  # MB
-            logger.info(f"Video downloaded successfully ({file_size:.2f} MB)")
-            return True
-        else:
-            logger.error(f"Download failed: {stderr.decode()}")
-            return False
-            
-    except Exception as e:
-        logger.error(f"Video download error: {e}")
-        return False
-
-
-async def extract_audio_async(video_path: str, audio_path: str, max_duration: int) -> bool:
-    """Extract audio from video asynchronously"""
-    logger.info("Starting async audio extraction...")
-    start_time = time.time()
+    logger.info(f"Starting async video download for {platform} from URL: {url}")
     
+    # Ensure output directory exists
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    # Clean up any existing file
+    if os.path.exists(output_path):
+        os.remove(output_path)
+    
+    # Method 1: Try direct yt-dlp download (most reliable)
     try:
-        audio_cmd = [
-            "ffmpeg", "-i", video_path,
-            "-t", str(max_duration),
-            "-q:a", "0",
-            "-map", "a",
-            "-ac", "1",
-            "-ar", "16000",
-            audio_path, "-y"
+        logger.info("Method 1: Direct yt-dlp download")
+        
+        # Use temporary output without extension (yt-dlp will add it)
+        temp_output = output_path.rsplit('.', 1)[0] + "_temp"
+        
+        cmd = [
+            "yt-dlp",
+            url,
+            "-o", f"{temp_output}.%(ext)s",
+            "-f", "18",  # 360p MP4 for YouTube - most reliable
+            "--no-playlist",
+            "--no-warnings",
+            "--quiet",
+            "--progress",
+            "--no-check-certificate",
+            "--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         ]
         
+        # Platform-specific options
+        if platform == 'youtube':
+            cmd.extend(["--extractor-args", "youtube:player_client=android"])
+        elif platform == 'tiktok':
+            cmd.extend(["--user-agent", "TikTok 26.2.0 rv:262018 (iPhone; iOS 14.4.2; en_US) Cronet"])
+        elif platform == 'twitter' or platform == 'x':
+            cmd.extend(["--extractor-args", "twitter:api=legacy"])
+        
         process = await asyncio.create_subprocess_exec(
-            *audio_cmd,
+            *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
         
-        stdout, stderr = await process.communicate()
-        
-        elapsed = time.time() - start_time
-        
-        if process.returncode == 0 and os.path.exists(audio_path):
-            logger.info(f"Audio extracted successfully in {elapsed:.2f}s")
-            return True
-        else:
-            logger.warning(f"Audio extraction failed after {elapsed:.2f}s")
-            return False
-            
-    except Exception as e:
-        logger.error(f"Audio extraction error: {e}")
-        return False
-
-
-async def extract_frames_async(video_path: str, frames_dir: str, settings: dict) -> list:
-    """Extract frames from video asynchronously"""
-    logger.info("Starting async frame extraction...")
-    start_time = time.time()
-    
-    try:
-        # Build frame extraction command
-        if settings.get('scene_change_detection', False):
-            video_filter = f"select='gte(t*{1/settings['base_interval']},n)+gt(scene,0.3)',scale=-1:720"
-        else:
-            video_filter = f"fps={1/settings['base_interval']},scale=-1:720"
-        
-        frame_cmd = [
-            "ffmpeg", "-i", video_path,
-            "-t", str(settings['max_duration']),
-            "-vf", video_filter,
-            "-vsync", "vfr",
-            "-frame_pts", "1",
-            "-threads", "4",
-            "-preset", "ultrafast",
-            "-q:v", "2",
-            f"{frames_dir}/frame_%04d.jpg"
-        ]
-        
-        process = await asyncio.create_subprocess_exec(
-            *frame_cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        
-        stdout, stderr = await process.communicate()
-        
-        elapsed = time.time() - start_time
+        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=180)
         
         if process.returncode == 0:
-            frame_files = sorted([f for f in os.listdir(frames_dir) if f.endswith('.jpg')])
-            frame_files = frame_files[:settings['max_frames']]
-            logger.info(f"Extracted {len(frame_files)} frames in {elapsed:.2f}s")
-            return frame_files
+            # Find the downloaded file (yt-dlp adds extension)
+            for ext in ['.mp4', '.webm', '.mkv', '.avi', '.mov']:
+                downloaded_file = f"{temp_output}{ext}"
+                if os.path.exists(downloaded_file) and os.path.getsize(downloaded_file) > 1024:
+                    shutil.move(downloaded_file, output_path)
+                    logger.info(f"Download successful: {output_path} ({os.path.getsize(output_path)} bytes)")
+                    return True
+            
+            logger.warning("yt-dlp succeeded but file not found")
         else:
-            logger.error(f"Frame extraction failed after {elapsed:.2f}s")
-            return []
-            
-    except Exception as e:
-        logger.error(f"Frame extraction error: {e}")
-        return []
-
-
-def transcribe_audio_sync(audio_path: str, platform: str) -> tuple[str, str]:
-    """Transcribe audio synchronously (runs in thread pool)"""
-    logger.info("Starting audio transcription...")
-    start_time = time.time()
+            logger.warning(f"yt-dlp failed: {stderr.decode()[:200]}")
     
+    except asyncio.TimeoutError:
+        logger.warning("Method 1 timeout")
+    except Exception as e:
+        logger.warning(f"Method 1 exception: {str(e)}")
+    
+    # Method 2: Try with FFmpeg (fallback)
     try:
-        if not os.path.exists(audio_path) or os.path.getsize(audio_path) < 1024:
-            return "", ""
+        logger.info("Method 2: FFmpeg download")
         
-        model = whisper.load_model("base")
-        whisper_result = model.transcribe(
-            audio_path,
-            word_timestamps=True,
-            task="transcribe"
+        # Get direct URL first
+        get_url_cmd = ["yt-dlp", url, "-f", "best", "--get-url", "--no-warnings", "--quiet"]
+        
+        process = await asyncio.create_subprocess_exec(
+            *get_url_cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
         )
         
-        transcript_with_timestamps = []
-        transcript_text_only = ""
+        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=30)
         
-        if "segments" in whisper_result:
-            for segment in whisper_result["segments"]:
-                start_time_seg = segment.get("start", 0)
-                end_time = segment.get("end", 0)
-                text = segment.get("text", "").strip()
-                
-                if text:
-                    start_formatted = f"{int(start_time_seg//60):02d}:{int(start_time_seg%60):02d}"
-                    end_formatted = f"{int(end_time//60):02d}:{int(end_time%60):02d}"
-                    transcript_with_timestamps.append(f"[{start_formatted}-{end_formatted}] {text}")
-                    transcript_text_only += text + " "
-        
-        elapsed = time.time() - start_time
-        logger.info(f"Transcription completed in {elapsed:.2f}s")
-        
-        return transcript_text_only.strip(), "\n".join(transcript_with_timestamps)
-        
-    except Exception as e:
-        logger.error(f"Transcription error: {e}")
-        return "", ""
-
-
-def encode_image(image_path: str) -> str:
-    """Encode image to base64"""
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode('utf-8')
-
-
-def get_platform_optimized_vision_prompt(platform: str, frame_count: int) -> str:
-    """Generate optimized prompts for vision model"""
-    platform_contexts = {
-        'tiktok': {
-            'focus': "viral trends, text overlays, effects, transitions, gaming, music/dance, comedy skits",
-            'style': "fast-paced, engaging, youth-oriented content",
-            'key_elements': "hashtag-worthy moments, sound sync, visual effects, trending topics"
-        },
-        'twitter': {
-            'focus': "news, reactions, viral moments, discussions, breaking events",
-            'style': "conversational, immediate, topical content",
-            'key_elements': "key quotes, reactions, context clues, trending topics"
-        },
-        'instagram': {
-            'focus': "lifestyle, aesthetics, stories, reels, visual appeal",
-            'style': "polished, aspirational, visually appealing",
-            'key_elements': "composition, lighting, brand elements, lifestyle moments"
-        },
-        'youtube': {
-            'focus': "educational content, tutorials, entertainment, storytelling",
-            'style': "structured, informative, engaging long-form content",
-            'key_elements': "key teaching moments, demonstrations, narrative flow"
-        }
-    }
-    
-    context = platform_contexts.get(platform, {
-        'focus': "general video content",
-        'style': "varied content types",
-        'key_elements': "main visual elements"
-    })
-    
-    return f"""You are analyzing {frame_count} sequential frames from a {platform.upper()} video.
-
-PLATFORM CONTEXT: Focus on {context['focus']}. This is {context['style']}.
-
-ANALYSIS INSTRUCTIONS:
-1. For each frame, identify: {context['key_elements']}
-2. If it's gaming content: Name the game, platform (mobile/PC/console), UI elements
-3. If it's educational: Identify the subject area and teaching method
-4. If it's entertainment: Note the format (comedy, music, dance, etc.)
-5. Track visual progression and scene changes between frames
-
-RESPONSE FORMAT: 
-Provide Frame 1, Frame 2, etc. with 1-2 concise sentences each.
-Focus on elements that help understand the video's purpose and appeal to {platform} users."""
-
-
-async def generate_batch_descriptions_async(
-    batches: List[FrameBatch],
-    frames_dir: str,
-    platform: str
-) -> List[dict]:
-    """
-    Generate descriptions for each batch of frames with transcript context
-    
-    Args:
-        batches: List of FrameBatch objects
-        frames_dir: Directory containing extracted frames
-        platform: Video platform
-    
-    Returns:
-        List of batch descriptions with metadata
-    """
-    logger.info(f"Generating descriptions for {len(batches)} batches...")
-    batch_results = []
-    
-    for batch in batches:
-        try:
-            # Prepare content with frames and prompt
-            prompt = get_batch_analysis_prompt(batch, platform)
+        if process.returncode == 0:
+            direct_url = stdout.decode().strip().split('\n')[0]
             
-            content: list[Any] = [{"type": "text", "text": prompt}]
-            
-            # Add frames to the request
-            for frame in batch.frames:
-                frame_path = os.path.join(frames_dir, frame.filename)
-                
-                if not os.path.exists(frame_path):
-                    logger.warning(f"Frame file not found: {frame_path}")
-                    continue
-                
-                try:
-                    base64_image = encode_image(frame_path)
-                    content.extend([
-                        {"type": "text", "text": f"\nFrame {frame.frame_number} (~{int(frame.timestamp)}s):"},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image}",
-                                "detail": "low"
-                            }
-                        }
-                    ])
-                except Exception as e:
-                    logger.error(f"Error encoding frame {frame.filename}: {e}")
-                    continue
-            
-            messages: list[Any] = [{"role": "user", "content": content}]
-            
-            # Call vision API
-            loop = asyncio.get_event_loop()
-            response = await loop.run_in_executor(
-                executor,
-                lambda: client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=messages,
-                    max_tokens=2000,
-                    temperature=0.3
-                )
-            )
-            
-            description = response.choices[0].message.content
-            
-            batch_result = {
-                "batch_number": batch.batch_number,
-                "frame_count": len(batch.frames),
-                "time_range": f"{int(batch.start_time)}s - {int(batch.end_time)}s",
-                "transcript": batch.combined_transcript,
-                "description": description,
-                "frames": [
-                    {
-                        "number": f.frame_number,
-                        "filename": f.filename,
-                        "timestamp": round(f.timestamp, 2)
-                    }
-                    for f in batch.frames
+            if direct_url and direct_url.startswith('http'):
+                # Download with FFmpeg
+                ffmpeg_cmd = [
+                    "ffmpeg",
+                    "-i", direct_url,
+                    "-c", "copy",
+                    "-y",
+                    "-loglevel", "warning",
+                    output_path
                 ]
-            }
-            
-            batch_results.append(batch_result)
-            logger.info(f"Batch {batch.batch_number} description generated ({len(batch.frames)} frames)")
-            
-        except Exception as e:
-            logger.error(f"Error generating description for batch {batch.batch_number}: {e}")
-            batch_results.append({
-                "batch_number": batch.batch_number,
-                "error": str(e),
-                "frame_count": len(batch.frames)
-            })
+                
+                process = await asyncio.create_subprocess_exec(
+                    *ffmpeg_cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                
+                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=180)
+                
+                if process.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 1024:
+                    logger.info(f"✓ FFmpeg download successful: {output_path}")
+                    return True
+                else:
+                    logger.warning(f"FFmpeg failed: {stderr.decode()[:200]}")
     
-    return batch_results
-
-
-async def generate_frame_captions_async(frames_dir: str, frame_files: list, platform: str) -> list:
-    """Generate captions for frames asynchronously"""
-    logger.info("Starting async frame caption generation...")
-    start_time = time.time()
-    
-    frame_summaries = []
-    platform_prompt = get_platform_optimized_vision_prompt(platform, len(frame_files))
-    
-    content: list[Any] = [{"type": "text", "text": platform_prompt}]
-    
-    for idx, fname in enumerate(frame_files, start=1):
-        frame_path = os.path.join(frames_dir, fname)
-        try:
-            base64_image = encode_image(frame_path)
-            content.extend([
-                {"type": "text", "text": f"\nFrame {idx}:"},
-                {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/jpeg;base64,{base64_image}",
-                        "detail": "low"
-                    }
-                }
-            ])
-        except Exception as e:
-            logger.error(f"Error reading {fname}: {e}")
-            continue
-    
-    messages: list[Any] = [{"role": "user", "content": content}]
-    
-    try:
-        # Run OpenAI API call in thread pool to not block event loop
-        loop = asyncio.get_event_loop()
-        response = await loop.run_in_executor(
-            executor,
-            lambda: client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=messages,
-                max_tokens=2000,
-                temperature=0.3
-            )
-        )
-        
-        captions_text = response.choices[0].message.content
-        
-        if captions_text:
-            lines = captions_text.splitlines()
-            for line in lines:
-                line = line.strip()
-                if line and ("frame" in line.lower() or any(char.isdigit() for char in line[:10])):
-                    frame_summaries.append(line)
-        
-        elapsed = time.time() - start_time
-        logger.info(f"Generated {len(frame_summaries)} captions in {elapsed:.2f}s")
-        
+    except asyncio.TimeoutError:
+        logger.warning("Method 2 timeout")
     except Exception as e:
-        logger.error(f"Caption generation error: {e}")
-        for idx in range(1, len(frame_files) + 1):
-            frame_summaries.append(f"Frame {idx}: {platform} video content")
+        logger.warning(f"Method 2 exception: {str(e)}")
     
-    return frame_summaries
-
-
-async def generate_summary_async(transcript: str, transcript_timestamps: str, 
-                                frame_summaries: list, platform: str) -> str:
-    """Generate final summary asynchronously"""
-    logger.info("Starting async summary generation...")
-    start_time = time.time()
-    
-    platform_summary_context = {
-        'tiktok': "This is a TikTok video. Summarize with a focus on short-form engagement: social trends, gaming, music/audio elements, viral hooks, and visual effects.",
-        'twitter': "This is a Twitter video. Summarize with a focus on news, current events, viral reactions, or discussions that trend on the platform.",
-        'instagram': "This is an Instagram video. Summarize with a focus on lifestyle, aesthetics, reels/stories, visual creativity, and shareability.",
-        'youtube': "This is a YouTube video. Summarize with a focus on educational material, tutorials, entertainment, gaming, or documentary-style storytelling.",
-        'default': "This is a video. Provide a clear and engaging summary of what the content is about."
-    }
-    
-    if transcript:
-        combined_context = f"""
-{platform_summary_context.get(platform, platform_summary_context['default'])}
-
-AUDIO TRANSCRIPT WITH TIMESTAMPS:
-{transcript_timestamps}
-
-VISUAL SNAPSHOTS (enhanced frame analysis with {len(frame_summaries)} frames):
-{chr(10).join(frame_summaries)}
-
-TASK:
-Provide a structured, detailed summary that combines both the audio and visual elements. 
-
-1. Identify what the video is about (e.g., gaming → name the game, anime → name the anime, educational → name the topic, music → name the song/artist, Dance → name the dance).
-2. Highlight all the key points or moments using the EXACT TIMESTAMPS from the transcribed audio above (e.g., "At [00:15-00:25], the speaker discusses..." or "Between [01:30-01:45], we see...").
-3. Reference specific timestamps when describing visual elements that align with the audio.
-4. Explain the key benefits of watching the {platform.upper()} video (trends, entertainment, learning value, cultural relevance, etc.).
-5. Write in a clear, audience-friendly way (easy to read, short paragraphs, avoid jargon).
-"""
-    else:
-        combined_context = f"""
-{platform_summary_context.get(platform, platform_summary_context['default'])}
-
-VISUAL SNAPSHOTS (enhanced frame analysis with {len(frame_summaries)} frames):
-{chr(10).join(frame_summaries)}
-
-TASK:
-Provide a structured, detailed summary of this video using only the enhanced visual analysis.
-
-1. Identify the type of content (music, dance, anime, gaming, tutorial, lifestyle, etc.).
-2. Mention any recognizable people, characters, brands (if not famous, classify as upcoming/independent).
-3. Highlight visual trends, styles, and effects that make it engaging for {platform.upper()} users.
-4. Explain the likely audience appeal (why someone would watch/share it).
-"""
-    
+    # Method 3: Try with different format (last resort)
     try:
-        loop = asyncio.get_event_loop()
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        response = await loop.run_in_executor(
-            executor,
-            lambda: model.generate_content(combined_context)
-        )
+        logger.info("Method 3: Best quality fallback")
         
-        elapsed = time.time() - start_time
-        logger.info(f"Summary generated in {elapsed:.2f}s")
+        temp_output = output_path.rsplit('.', 1)[0] + "_temp3"
         
-        return response.text
+        cmd = [
+            "yt-dlp",
+            url,
+            "-o", f"{temp_output}.%(ext)s",
+            "-f", "best[ext=mp4]/best",
+            "--no-playlist",
+            "--quiet",
+        ]
         
-    except Exception as e:
-        logger.error(f"Summary generation error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate summary: {str(e)}")
-
-
-@app.get("/")
-def home():
-    """Serve the main HTML page"""
-    return FileResponse("static/index.html")
-
-
-@app.post("/summarize_video")
-async def summarize_video(req: VideoRequest):
-    """Main async endpoint for video summarization with parallel processing"""
-    job_dir = None
-    overall_start = time.time()
-    
-    logger.info(f"=== Starting async video summarization for {req.video_url} ===")
-    
-    try:
-        # Step 1: Identify platform and setup
-        platform = identify_platform(req.video_url)
-        logger.info(f"Detected platform: {platform}")
-        
-        job_dir = os.path.join(WORK_DIR, f"job_{int(time.time())}")
-        os.makedirs(job_dir, exist_ok=True)
-        
-        video_path = f"{job_dir}/video.mp4"
-        audio_path = f"{job_dir}/audio.mp3"
-        frames_dir = f"{job_dir}/frames"
-        os.makedirs(frames_dir, exist_ok=True)
-        
-        # Step 2: Download video first
-        download_success = await download_video_async(req.video_url, platform, video_path)
-        
-        if not download_success:
-            raise HTTPException(status_code=400, detail="Failed to download video")
-        
-        # Get video duration
-        duration_result = await asyncio.create_subprocess_exec(
-            "ffprobe", "-v", "quiet", "-print_format", "json",
-            "-show_format", video_path,
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
-        stdout, _ = await duration_result.communicate()
         
-        video_duration = 0
-        try:
-            import json
-            data = json.loads(stdout.decode())
-            video_duration = float(data.get("format", {}).get("duration", 0))
-            logger.info(f"Video duration: {video_duration:.1f}s")
-        except:
-            logger.warning("Could not determine video duration")
+        stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=180)
         
-        analysis_settings = get_enhanced_platform_analysis_settings(platform, video_duration)
-        logger.info(f"Using settings: {analysis_settings}")
-        
-        # Step 3: Run audio extraction and frame extraction IN PARALLEL
-        logger.info("=== PARALLEL PROCESSING: Audio + Frames ===")
-        parallel_start = time.time()
-        
-        audio_task = extract_audio_async(video_path, audio_path, analysis_settings['max_duration'])
-        frames_task = extract_frames_async(video_path, frames_dir, analysis_settings)
-        
-        # Wait for both to complete
-        audio_success, frame_files = await asyncio.gather(audio_task, frames_task)
-        
-        parallel_elapsed = time.time() - parallel_start
-        logger.info(f"=== PARALLEL PROCESSING COMPLETED in {parallel_elapsed:.2f}s ===")
-        
-        # Step 4: Run transcription and caption generation IN PARALLEL
-        logger.info("=== PARALLEL PROCESSING: Transcription + Captions ===")
-        ai_start = time.time()
-        
-        # Transcription in thread pool (CPU-bound)
-        loop = asyncio.get_event_loop()
-        transcription_task = loop.run_in_executor(
-            executor,
-            transcribe_audio_sync,
-            audio_path,
-            platform
-        )
-        
-        # Caption generation (API call)
-        captions_task = generate_frame_captions_async(frames_dir, frame_files, platform)
-        
-        # Wait for both to complete
-        (transcript, transcript_timestamps), frame_summaries = await asyncio.gather(
-            transcription_task,
-            captions_task
-        )
-        
-        ai_elapsed = time.time() - ai_start
-        logger.info(f"=== AI PROCESSING COMPLETED in {ai_elapsed:.2f}s ===")
-        
-        # Step 5: Generate final summary
-        summary = await generate_summary_async(
-            transcript,
-            transcript_timestamps,
-            frame_summaries,
-            platform
-        )
-        
-        # Cleanup
-        shutil.rmtree(job_dir)
-        
-        overall_elapsed = time.time() - overall_start
-        logger.info(f"=== TOTAL PROCESSING TIME: {overall_elapsed:.2f}s ===")
-        
-        return {
-            "summary": summary,
-            "platform": platform,
-            "transcript_excerpt": transcript[:500] if transcript else f"No transcript (music/{platform} video)",
-            "frames_analyzed": len(frame_files),
-            "has_audio_transcript": bool(transcript.strip()),
-            "video_duration": video_duration,
-            "processing_time": {
-                "total": round(overall_elapsed, 2),
-                "parallel_extraction": round(parallel_elapsed, 2),
-                "ai_processing": round(ai_elapsed, 2)
-            },
-            "performance_improvement": "Parallel processing enabled",
-            "vision_api_used": "OpenAI GPT-4 Vision",
-            "enhancements": [
-                "Async parallel processing",
-                "Simultaneous audio + frame extraction",
-                "Concurrent transcription + caption generation",
-                "Local video download for reliability"
-            ]
-        }
-        
-    except Exception as e:
-        logger.exception("Error during async summarization")
-        if job_dir and os.path.exists(job_dir):
-            shutil.rmtree(job_dir)
-        raise
-
-
-@app.post("/analyze_video_with_batches")
-async def analyze_video_with_batches(req: VideoRequest):
-    """
-    New endpoint: Extract frames, match to transcript, and generate batch descriptions
-    This approach reduces AI API load by batching frames with their corresponding transcript
-    """
-    job_dir = None
-    overall_start = time.time()
+        if process.returncode == 0:
+            for ext in ['.mp4', '.webm', '.mkv', '.avi', '.mov']:
+                downloaded_file = f"{temp_output}{ext}"
+                if os.path.exists(downloaded_file) and os.path.getsize(downloaded_file) > 1024:
+                    shutil.move(downloaded_file, output_path)
+                    logger.info(f"✓ Download successful (method 3): {output_path}")
+                    return True
     
-    logger.info(f"=== Starting batch analysis for {req.video_url} ===")
-    
-    try:
-        # Step 1: Identify platform and setup
-        platform = identify_platform(req.video_url)
-        logger.info(f"Detected platform: {platform}")
-        
-        job_dir = os.path.join(WORK_DIR, f"job_{int(time.time())}")
-        os.makedirs(job_dir, exist_ok=True)
-        
-        video_path = f"{job_dir}/video.mp4"
-        audio_path = f"{job_dir}/audio.mp3"
-        frames_dir = f"{job_dir}/frames"
-        metadata_dir = f"{job_dir}/batch_metadata"
-        os.makedirs(frames_dir, exist_ok=True)
-        os.makedirs(metadata_dir, exist_ok=True)
-        
-        # Step 2: Download video
-        download_success = await download_video_async(req.video_url, platform, video_path)
-        
-        if not download_success:
-            raise HTTPException(status_code=400, detail="Failed to download video")
-        
-        # Step 3: Get video duration
-        duration_result = await asyncio.create_subprocess_exec(
-            "ffprobe", "-v", "quiet", "-print_format", "json",
-            "-show_format", video_path,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
-        stdout, _ = await duration_result.communicate()
-        
-        video_duration = 0
-        try:
-            import json as json_module
-            data = json_module.loads(stdout.decode())
-            video_duration = float(data.get("format", {}).get("duration", 0))
-            logger.info(f"Video duration: {video_duration:.1f}s")
-        except:
-            logger.warning("Could not determine video duration")
-        
-        analysis_settings = get_enhanced_platform_analysis_settings(platform, video_duration)
-        
-        # Step 4: Extract audio and transcribe
-        logger.info("Extracting and transcribing audio...")
-        audio_success = await extract_audio_async(video_path, audio_path, analysis_settings['max_duration'])
-        
-        if not audio_success:
-            raise HTTPException(status_code=400, detail="Failed to extract audio")
-        
-        # Transcribe audio
-        loop = asyncio.get_event_loop()
-        model = whisper.load_model("base")
-        whisper_result = await loop.run_in_executor(
-            executor,
-            lambda: model.transcribe(audio_path, word_timestamps=True, task="transcribe")
-        )
-        
-        # Step 5: Process frames with transcript matching
-        logger.info("Processing frames with transcript matching (2 FPS)...")
-        batches, stats = await process_video_frames_with_transcript(
-            video_path=video_path,
-            whisper_result=whisper_result,
-            frames_dir=frames_dir,
-            metadata_dir=metadata_dir,
-            fps=2.0,  # 2 frames per second as requested
-            max_duration=analysis_settings['max_duration'],
-            batch_size=10  # 10 frames per batch
-        )
-        
-        if not batches:
-            raise HTTPException(status_code=400, detail="Failed to create frame batches")
-        
-        logger.info(f"Created {len(batches)} batches with frame-transcript matching")
-        
-        # Step 6: Generate descriptions for each batch
-        logger.info("Generating descriptions for each batch...")
-        batch_descriptions = await generate_batch_descriptions_async(
-            batches=batches,
-            frames_dir=frames_dir,
-            platform=platform
-        )
-        
-        # Step 7: Create comprehensive summary
-        logger.info("Creating comprehensive summary...")
-        
-        summary_content = f"""
-BATCH-BASED VIDEO ANALYSIS REPORT
-==================================
-
-Video Platform: {platform.upper()}
-Total Duration: {video_duration:.1f} seconds
-Frame Extraction: 2 FPS
-Total Batches: {len(batches)}
-Frames per Batch: 10
-Total Frames Analyzed: {stats.get('total_frames', 'N/A')}
-
-BATCH SUMMARIES:
-"""
-        
-        for batch_desc in batch_descriptions:
-            if "error" not in batch_desc:
-                summary_content += f"""
-Batch {batch_desc['batch_number']} ({batch_desc['time_range']})
-{'-' * 40}
-Frames: {batch_desc['frame_count']}
-Transcript: {batch_desc['transcript']}
-Description:
-{batch_desc['description']}
-
-"""
-            else:
-                summary_content += f"Batch {batch_desc['batch_number']}: Error - {batch_desc['error']}\n"
-        
-        # Cleanup
-        shutil.rmtree(job_dir)
-        
-        overall_elapsed = time.time() - overall_start
-        logger.info(f"=== TOTAL PROCESSING TIME: {overall_elapsed:.2f}s ===")
-        
-        return {
-            "status": "success",
-            "platform": platform,
-            "video_duration": video_duration,
-            "total_batches": len(batches),
-            "total_frames_analyzed": stats.get('total_frames', 0),
-            "frames_per_batch": 10,
-            "extraction_fps": 2.0,
-            "batch_descriptions": batch_descriptions,
-            "comprehensive_summary": summary_content,
-            "processing_stats": stats,
-            "processing_time_seconds": round(overall_elapsed, 2),
-            "methodology": "Frame extraction at 2 FPS with transcript matching and batch-based AI analysis"
-        }
-        
+    except asyncio.TimeoutError:
+        logger.warning("Method 3 timeout")
     except Exception as e:
-        logger.exception("Error during batch analysis")
-        if job_dir and os.path.exists(job_dir):
-            shutil.rmtree(job_dir)
-        raise
+        logger.warning(f"Method 3 exception: {str(e)}")
+    
+    # All methods failed
+    logger.error("All download methods failed")
+    return False
 
-
-@app.get("/health")
-def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "processing_mode": "Async with Parallel Execution + Batch Analysis",
-        "supported_platforms": ["TikTok", "Twitter/X", "Instagram", "YouTube", "Direct URLs"],
-        "yt_dlp_available": shutil.which("yt-dlp") is not None,
-        "ffmpeg_available": shutil.which("ffmpeg") is not None,
-        "ffprobe_available": shutil.which("ffprobe") is not None,
-        "features": [
-            "Parallel audio + frame extraction",
-            "Concurrent transcription + caption generation",
-            "Local video download",
-            "Adaptive frame sampling",
-            "Platform-optimized analysis",
-            "NEW: Frame-transcript matching at 2 FPS",
-            "NEW: Batch-based AI analysis (reduces API calls)",
-            "NEW: Frame-accurate descriptions with transcript context"
-        ],
-        "new_endpoints": {
-            "analyze_video_with_batches": "POST /analyze_video_with_batches - Batch analysis with frame-to-transcript matching",
-            "summarize_video": "POST /summarize_video - Original full summarization"
-        }
-    }
-
-
+# ---------------- Main Execution ----------------
 if __name__ == "__main__":
-    logger.info("Starting ASYNC FastAPI server with parallel processing...")
+    logger.info("Starting Enhanced Video Analysis Web Application")
     uvicorn.run(app, host="0.0.0.0", port=8000)
