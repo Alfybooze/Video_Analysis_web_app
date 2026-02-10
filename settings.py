@@ -11,8 +11,9 @@ class Settings(BaseSettings):
     """Application settings"""
     
     # API Keys
-    GEMINI_API_KEY: Optional[str] = Field(default=None, env="GEMINI_API_KEY")
-    ANTHROPIC_API_KEY: Optional[str] = Field(default=None, env="ANTHROPIC_API_KEY")
+        # API Keys
+    GEMINI_API_KEY: Optional[str] = None
+    ANTHROPIC_API_KEY: Optional[str] = None
     
     # Video Processing
     FRAME_SAMPLE_RATE: float = Field(default=1.0, description="Frames per second to extract")

@@ -28,10 +28,12 @@ from fastapi.staticfiles import StaticFiles
 import requests
 import vector_store
 import json
+import hashlib
 
 # Import standalone modules
 from audio_pipeline import AudioPipeline as StandaloneAudioPipeline
 from timeline import MasterTimeline, AudioEvent, FrameEvent
+from video_pipeline import VideoPipeline
 
 # ---------------- Logging Setup ----------------
 logging.basicConfig(
@@ -223,166 +225,8 @@ class FAISSVectorStore(VectorStore):
         result_metadata = [self.metadata[idx] for idx in indices[0]]
         
         return distances[0], indices[0], result_metadata
-
-# ---------------- Video Pipeline Module ----------------
-class VideoPipeline:
-    """Video Processing Pipeline for frame extraction and embedding generation"""
-    def __init__(self, frame_rate: float = 1.0, vision_model: str = "ViT-B-32", 
-                 vision_pretrained: str = "openai", model: Any = None,
-                 preprocess: Any = None, tokenizer: Any = None,
-                 output_dir: str = "video_frames"):
-        self.frame_rate = frame_rate
-        self.vision_model_name = vision_model
-        self.vision_pretrained = vision_pretrained
-        self.clip_model = model
-        self.clip_preprocess = preprocess
-        self.tokenizer = tokenizer
-        self.output_dir = Path(output_dir)
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Use global CLIP model instead of loading new one
-        self.device = global_device
-        self.model = global_clip_model
-        self.preprocess = global_clip_preprocess
-        
-        logger.info(f"VideoPipeline initialized with pre-loaded vision model on device: {self.device}")
-    
-    def get_frame_embeddings(self, frames: List[Image.Image]) -> np.ndarray:
-        """Generate embeddings for a list of frames using CLIP"""
-        if not frames:
-            return np.array([])
-        
-        # Preprocess images
-        processed_images = torch.stack([self.clip_preprocess(frame) for frame in frames]).to(self.device)
-        
-        with torch.no_grad():
-            embeddings = self.clip_model.encode_image(processed_images)
-        
-        return embeddings.cpu().numpy()
-    def embed_text(self, text: str) -> np.ndarray:
-        """Generate text embedding using CLIP"""
-        tokenizer = open_clip.get_tokenizer("ViT-B-32")
-        with torch.no_grad():
-            text_tokens = tokenizer([text]).to(self.device)
-            text_embedding = self.clip_model.encode_text(text_tokens)
-        return text_embedding.cpu().numpy()
     
     
-    def extract_frames(self, video_path: Path, video_id: str, save_frames: bool = True) -> List[Tuple[float, np.ndarray, Optional[Path]]]:
-        """Extract frames from video at specified frame rate"""
-        logger.info(f"Extracting frames from {video_path} at {self.frame_rate} fps")
-        
-        # Open video
-        cap = cv2.VideoCapture(str(video_path))
-        
-        if not cap.isOpened():
-            raise ValueError(f"Failed to open video: {video_path}")
-        
-        # Get video properties
-        video_fps = cap.get(cv2.CAP_PROP_FPS)
-        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        duration = total_frames / video_fps
-        
-        logger.info(f"Video: {video_fps} fps, {total_frames} frames, {duration:.2f}s")
-        
-        # Calculate frame sampling interval
-        frame_interval = int(video_fps / self.frame_rate)
-        
-        frames = []
-        frame_count = 0
-        saved_count = 0
-        
-        # Create output directory for this video
-        if save_frames:
-            video_frame_dir = self.output_dir / video_id
-            video_frame_dir.mkdir(parents=True, exist_ok=True)
-        
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            
-            # Sample frames at specified interval
-            if frame_count % frame_interval == 0:
-                timestamp = frame_count / video_fps
-                
-                # Save frame if requested
-                frame_path = None
-                if save_frames:
-                    frame_filename = f"frame_{saved_count:06d}_t{timestamp:.2f}s.jpg"
-                    frame_path = video_frame_dir / frame_filename
-                    cv2.imwrite(str(frame_path), frame)
-                
-                # Convert BGR to RGB
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                
-                frames.append((timestamp, frame_rgb, frame_path))
-                saved_count += 1
-            
-            frame_count += 1
-        
-        cap.release()
-        
-        logger.info(f"Extracted {len(frames)} frames from video")
-        return frames
-    
-    def create_frame_events(self, frames: List[Tuple[float, np.ndarray, Optional[Path]]], video_id: str) -> List[FrameEvent]:
-        """Create FrameEvent objects from extracted frames"""
-        frame_events = []
-        
-        for idx, (timestamp, frame_array, frame_path) in enumerate(frames):
-            event = FrameEvent(
-                timestamp=timestamp,
-                frame_index=idx,
-                frame_path=str(frame_path) if frame_path else None,
-                embedding_id=f"{video_id}_frame_{idx}",
-                metadata={
-                    'width': frame_array.shape[1],
-                    'height': frame_array.shape[0]
-                }
-            )
-            frame_events.append(event)
-        
-        logger.info(f"Created {len(frame_events)} frame events")
-        return frame_events
-    
-    def generate_embeddings(self, frames: List[Tuple[float, np.ndarray, Optional[Path]]]) -> np.ndarray:
-        """Generate CLIP embeddings for frames"""
-        logger.info(f"Generating embeddings for {len(frames)} frames")
-        
-        embeddings = []
-        
-        # Process in batches
-        batch_size = 32
-        
-        with torch.no_grad():
-            for i in range(0, len(frames), batch_size):
-                batch_frames = frames[i:i + batch_size]
-                
-                # Preprocess frames
-                batch_images = []
-                for _, frame_array, _ in batch_frames:
-                    pil_image = Image.fromarray(frame_array)
-                    preprocessed = self.preprocess(pil_image).unsqueeze(0)
-                    batch_images.append(preprocessed)
-                
-                # Stack batch
-                batch_tensor = torch.cat(batch_images, dim=0).to(self.device)
-                
-                # Generate embeddings
-                batch_embeddings = self.model.encode_image(batch_tensor)
-                
-                # Normalize embeddings
-                batch_embeddings = batch_embeddings / batch_embeddings.norm(dim=-1, keepdim=True)
-                
-                embeddings.append(batch_embeddings.cpu().numpy())
-        
-        # Concatenate all embeddings
-        all_embeddings = np.concatenate(embeddings, axis=0)
-        
-        logger.info(f"Generated embeddings with shape {all_embeddings.shape}")
-        return all_embeddings
-
 # ---------------- Audio Pipeline Module ----------------
 class EnhancedAudioPipeline(StandaloneAudioPipeline):
     """Enhanced Audio Pipeline that uses pre-loaded global models"""
@@ -404,7 +248,7 @@ class EnhancedAudioPipeline(StandaloneAudioPipeline):
         if not texts:
             return np.array([]), []
             
-        embeddings = self.sentence_transformer.encode(texts, convert_to_numpy=True)
+        embeddings = self.embed_model.encode(texts, convert_to_numpy=True)
         
         # Create metadata for each embedding
         metadata = [
@@ -416,10 +260,7 @@ class EnhancedAudioPipeline(StandaloneAudioPipeline):
     
     def embed_text(self, text: str) -> np.ndarray:
         """Generate text embedding using Sentence Transformer"""
-        return self.sentence_transformer.encode(text, convert_to_numpy=True)
-    
-    def process_audio(self, audio_path: str, video_id: str) -> Tuple[np.ndarray, List[Dict[str, Any]]]:
-        """Transcribe audio and generate embeddings"""
+        return self.embed_model.encode(text, convert_to_numpy=True)
     
     def transcribe_audio(self, audio_path: Path) -> Dict[str, Any]:
         """Transcribe audio using the parent class method"""
@@ -456,6 +297,7 @@ class VideoAnalyticsSystem:
         self.vector_store = None
         self.audio_pipeline = None
         self.video_pipeline = None
+        self.timeline: Optional[MasterTimeline] = None
         
         logger.info("Initialized VideoAnalyticsSystem")
     
@@ -467,7 +309,7 @@ class VideoAnalyticsSystem:
         logger.info("All components initialized")
     
     def process_video(self, video_path: str, video_id: str) -> Dict[str, Any]:
-        """Process a complete video through the pipeline"""
+        """Process a complete video through the pipeline with intelligent frame-transcript mixing"""
         logger.info(f"=== Processing Video: {video_path} ===")
         
         # Initialize components if not already done
@@ -476,8 +318,17 @@ class VideoAnalyticsSystem:
         
         video_path_obj = Path(video_path)
         
+        # Get video duration first
+        try:
+            probe = ffmpeg.probe(str(video_path_obj))
+            video_duration = float(probe['format'].get('duration', 0))
+            logger.info(f"Video duration: {video_duration} seconds")
+        except Exception as e:
+            logger.warning(f"Could not get video duration: {str(e)}")
+            video_duration = 0
+        
         # Step 1: Audio Pipeline
-        logger.info("[1/2] Audio Pipeline")
+        logger.info("[1/3] Audio Pipeline")
         audio_path = self.audio_pipeline.extract_audio(video_path_obj)
         transcription = self.audio_pipeline.transcribe_audio(audio_path)
         audio_events = self.audio_pipeline.create_audio_events(transcription)
@@ -485,33 +336,262 @@ class VideoAnalyticsSystem:
         
         # Add audio embeddings to vector store
         audio_metadata = [event.to_dict() for event in audio_events]
-        self.vector_store.add("audio",audio_embeddings, audio_metadata)
+        self.vector_store.add("audio", audio_embeddings, audio_metadata)
         
         logger.info(f"Audio events: {len(audio_events)}")
         logger.info(f"Audio embeddings shape: {audio_embeddings.shape}")
         
-        # Step 2: Video Pipeline
-        logger.info("[2/2] Video Pipeline")
+        # Step 2: Video Pipeline (Frame Extraction)
+        logger.info("[2/3] Video Pipeline - Frame Extraction")
         frames = self.video_pipeline.extract_frames(video_path_obj, video_id, save_frames=True)
         frame_events = self.video_pipeline.create_frame_events(frames, video_id)
         frame_embeddings = self.video_pipeline.generate_embeddings(frames)
         
-        # Add video embeddings to vector store
-        frame_metadata = [event.to_dict() for event in frame_events]
-        self.vector_store.add("video",frame_embeddings, frame_metadata)
-        
         logger.info(f"Frame events: {len(frame_events)}")
         logger.info(f"Frame embeddings shape: {frame_embeddings.shape}")
+        
+        # Step 3: Intelligent Frame-Transcript Mixing (NEW!)
+        logger.info("[3/3] Intelligent Frame-Transcript Mixing")
+        
+        # Match frames to transcript segments based on timestamps
+        enhanced_frame_events = self._create_intelligent_frame_descriptions(
+            frames, frame_events, audio_events
+        )
+        
+        # Initialize timeline with proper duration
+        self.timeline = MasterTimeline(video_id=video_id, duration_seconds=video_duration, metadata={})
+        
+        # Add audio events to timeline
+        for event in audio_events:
+            self.timeline.add_audio_event(event)
+        
+        # Add enhanced frame events to timeline (with descriptions!)
+        for event in enhanced_frame_events:
+            self.timeline.add_frame_event(event)
+        
+        # Add enhanced video embeddings to vector store
+        frame_metadata = [event.to_dict() for event in enhanced_frame_events]
+        self.vector_store.add("video", frame_embeddings, frame_metadata)
         
         logger.info("=== Video Processing Complete ===")
         
         return {
             "video_id": video_id,
             "audio_events": len(audio_events),
-            "frame_events": len(frame_events),
+            "frame_events": len(enhanced_frame_events),
             "audio_embeddings_shape": audio_embeddings.shape,
-            "frame_embeddings_shape": frame_embeddings.shape
+            "frame_embeddings_shape": frame_embeddings.shape,
+            "visual_segments_created": len(enhanced_frame_events)
         }
+
+    def _create_intelligent_frame_descriptions(self, frames: List[Tuple], frame_events: List[FrameEvent], 
+                                            audio_events: List[AudioEvent]) -> List[FrameEvent]:
+        """Create intelligent frame descriptions by matching with transcript segments"""
+        
+        enhanced_events = []
+        
+        # Create fixed 10-second segments covering the entire video duration
+        segment_duration = 10.0
+        
+        # Find the maximum timestamp to determine total video duration
+        if frames:
+            max_timestamp = max(timestamp for timestamp, _, _ in frames)
+            total_segments = int(max_timestamp // segment_duration) + 1
+        else:
+            total_segments = 1
+        
+        # Process each fixed segment
+        for segment_index in range(total_segments):
+            segment_start = segment_index * segment_duration
+            segment_end = (segment_index + 1) * segment_duration
+            
+            # Find frames that belong to this segment
+            segment_frames = []
+            segment_events = []
+            
+            for (timestamp, frame_array, frame_path), frame_event in zip(frames, frame_events):
+                if segment_start <= timestamp < segment_end:
+                    segment_frames.append((timestamp, frame_array, frame_path))
+                    segment_events.append(frame_event)
+            
+            # Process this segment if it has frames
+            if segment_frames:
+                enhanced_segment_events = self._analyze_time_segment(
+                    segment_start, segment_end,
+                    segment_frames, segment_events, audio_events
+                )
+                enhanced_events.extend(enhanced_segment_events)
+        return enhanced_events
+
+    def _analyze_time_segment(self, segment_start: float, segment_end: float, 
+                            frames: List[Tuple], frame_events: List[FrameEvent], 
+                            audio_events: List[AudioEvent]) -> List[FrameEvent]:
+        """Analyze a time segment and create intelligent descriptions"""
+        
+        # Get transcript content for this time segment
+        segment_transcript = []
+        for audio_event in audio_events:
+            if (audio_event.timestamp >= segment_start - 2.0 and 
+                audio_event.timestamp <= segment_end + 2.0 and 
+                audio_event.text):
+                segment_transcript.append({
+                    'timestamp': audio_event.timestamp,
+                    'text': audio_event.text
+                })
+        
+        # Sort transcript by timestamp
+        segment_transcript.sort(key=lambda x: x['timestamp'])
+        
+        # Create varied descriptions for each frame in this segment
+        for i, (frame_event, (timestamp, frame_array, frame_path)) in enumerate(zip(frame_events, frames)):
+            # Calculate frame position within segment (0 to 1)
+            segment_progress = (timestamp - segment_start) / (segment_end - segment_start) if segment_end != segment_start else 0
+            
+            # Find transcript content based on frame position and timestamp
+            frame_description = None
+            closest_transcript = None
+            
+            if segment_transcript:
+                # Strategy 1: Find transcript closest to this frame's timestamp
+                closest_distance = float('inf')
+                for transcript_item in segment_transcript:
+                    distance = abs(transcript_item['timestamp'] - timestamp)
+                    if distance < closest_distance:
+                        closest_distance = distance
+                        closest_transcript = transcript_item
+                
+                # Strategy 2: Distribute transcript content across frames based on position
+                transcript_index = int(segment_progress * len(segment_transcript))
+                transcript_index = min(transcript_index, len(segment_transcript) - 1)
+                
+                # Use closest transcript but vary the description based on frame position
+                if closest_transcript:
+                    # Create different description styles based on frame position
+                    if segment_progress < 0.3:
+                        # Early frames: focus on beginning of transcript
+                        frame_description = f"Early segment [{timestamp:.1f}s]: {closest_transcript['text'][:80]}..."
+                    elif segment_progress < 0.7:
+                        # Middle frames: show current context
+                        frame_description = f"Mid segment [{timestamp:.1f}s]: {closest_transcript['text'][:80]}..."
+                    else:
+                        # Later frames: show progression
+                        frame_description = f"Late segment [{timestamp:.1f}s]: {closest_transcript['text'][:80]}..."
+                    
+                    # Add transcript timestamp for reference
+                    frame_description += f" (audio at {closest_transcript['timestamp']:.1f}s)"
+                    
+                    # For longer transcripts, show different parts based on frame position
+                    if len(closest_transcript['text']) > 80:
+                        start_pos = int(segment_progress * (len(closest_transcript['text']) - 80))
+                        excerpt = closest_transcript['text'][start_pos:start_pos + 80]
+                        frame_description = f"Segment {segment_start:.1f}s-{segment_end:.1f}s [{timestamp:.1f}s]: {excerpt}..."
+                else:
+                    # Fallback to segment summary
+                    transcript_summary = " ".join([item['text'] for item in segment_transcript[:2]])
+                    frame_description = f"Segment {segment_start:.1f}s-{segment_end:.1f}s [{timestamp:.1f}s]: {transcript_summary[:80]}..."
+            else:
+                frame_description = f"Visual content at {timestamp:.1f}s (no matching audio)"
+            
+            # Enhance this specific frame event
+            frame_event.metadata['description'] = frame_description
+            frame_event.metadata['segment_start'] = segment_start
+            frame_event.metadata['segment_end'] = segment_end
+            frame_event.metadata['frame_timestamp'] = timestamp
+            frame_event.metadata['closest_transcript'] = closest_transcript['text'] if closest_transcript else None
+            frame_event.metadata['segment_progress'] = segment_progress
+        
+        return frame_events
+    def _match_frames_to_transcript(self, frames: List[Tuple], audio_events: List[AudioEvent]) -> List[Dict]:
+        """Match frames to their corresponding transcript segments based on timestamp"""
+        matches = []
+        
+        for timestamp, frame_array, frame_path in frames:
+            # Find the audio event that corresponds to this timestamp
+            matching_audio = None
+            for audio_event in audio_events:
+                if abs(audio_event.timestamp - timestamp) <= 2.0:  # 2-second tolerance
+                    matching_audio = audio_event
+                    break
+            
+            matches.append({
+                'timestamp': timestamp,
+                'frame_array': frame_array,
+                'frame_path': frame_path,
+                'audio_event': matching_audio
+            })
+    
+        return matches
+    
+    def _create_frame_batches(self, frame_matches: List[Dict], max_batch_size: int = 8) -> List[Dict]:
+        """Group frames into intelligent batches for AI analysis"""
+        batches = []
+        current_batch = []
+        current_time_range = {'start': None, 'end': None}
+        
+        for match in frame_matches:
+            if not current_batch:
+                current_time_range['start'] = match['timestamp']
+            
+            current_batch.append(match)
+            current_time_range['end'] = match['timestamp']
+            
+            if len(current_batch) >= max_batch_size:
+                batches.append({
+                    'frames': current_batch,
+                    'time_range': current_time_range.copy(),
+                    'frame_count': len(current_batch)
+                })
+                current_batch = []
+                current_time_range = {'start': None, 'end': None}
+        
+        # Add remaining frames
+        if current_batch:
+            batches.append({
+                'frames': current_batch,
+                'time_range': current_time_range,
+                'frame_count': len(current_batch)
+            })
+        
+        return batches
+    
+    def _get_batch_transcript_context(self, batch: Dict, audio_events: List[AudioEvent]) -> str:
+        """Extract transcript context for a batch of frames"""
+        context_parts = []
+        batch_start = batch['time_range']['start']
+        batch_end = batch['time_range']['end']
+        
+        for audio_event in audio_events:
+            if (audio_event.timestamp >= batch_start - 5.0 and 
+                audio_event.timestamp <= batch_end + 5.0 and 
+                audio_event.text):
+                context_parts.append(f"[{audio_event.timestamp:.1f}s] {audio_event.text}")
+        
+        return " ".join(context_parts) if context_parts else "No transcript available"
+    
+    def _generate_batch_description(self, frames: List[Dict], transcript_context: str, time_range: Dict) -> str:
+        """Generate AI description for a batch of frames using Gemini"""
+        try:
+            # Create a prompt that includes transcript context
+            prompt = f"""Analyze these video frames and provide a detailed visual description.
+
+    Transcript context for this time period ({time_range['start']:.1f}s - {time_range['end']:.1f}s):
+    {transcript_context}
+
+    Please describe:
+    1. What is visually happening in these frames
+    2. Key objects, people, or actions visible
+    3. How the visuals relate to the transcript context
+    4. Any important visual details that complement the audio
+
+    Provide a comprehensive visual description that will help someone understand what they would see in this part of the video."""
+
+            # For now, return a placeholder description
+            # You should integrate with your Gemini API here
+            return f"Visual analysis of frames from {time_range['start']:.1f}s to {time_range['end']:.1f}s. {transcript_context}"
+            
+        except Exception as e:
+            logger.error(f"Error generating batch description: {str(e)}")
+            return f"Visual content from {time_range['start']:.1f}s to {time_range['end']:.1f}s"
     
     def search_video(self, query: str, query_type: str = "both", top_k: int = 5) -> List[Dict[str, Any]]:
         """Search for a query in the video content"""
@@ -521,28 +601,28 @@ class VideoAnalyticsSystem:
             # Search in audio
             logger.info(f"Searching audio for: '{query}'")
             audio_embedding = self.audio_pipeline.embed_text(query)
-            distances, indices, metadata = self.vector_store.search("audio", audio_embedding, top_k)
+            search_results = self.vector_store.search("audio", audio_embedding, top_k)
             
-            for dist, meta in zip(distances, metadata):
+            for result in search_results:
                 results.append({
                     "modality": "audio",
-                    "score": 1 - dist,  # Convert distance to similarity score
-                    "timestamp": meta.get("timestamp"),
-                    "text": meta.get("text")
+                    "score": result.get("score", 0),
+                    "timestamp": result.get("timestamp"),
+                    "text": result.get("text")
                 })
         
         if query_type in ["video", "both"]:
             # Search in video frames
             logger.info(f"Searching video for: '{query}'")
             frame_embedding = self.video_pipeline.embed_text(query)
-            distances, indices, metadata = self.vector_store.search("video", frame_embedding, top_k)
+            search_results = self.vector_store.search("video", frame_embedding, top_k)
             
-            for dist, meta in zip(distances, metadata):
+            for result in search_results:
                 results.append({
                     "modality": "video",
-                    "score": 1 - dist,
-                    "timestamp": meta.get("timestamp"),
-                    "preview_url": meta.get("preview_url")
+                    "score": result.get("score", 0),
+                    "timestamp": result.get("timestamp"),
+                    "preview_url": result.get("preview_url")
                 })
         
         if not results:
@@ -556,29 +636,63 @@ class VideoAnalyticsSystem:
     def get_video_content(self, video_id: str) -> dict:
         """Extract actual content from video processing results"""
         try:
-            # Get stored data from vector store
-            audio_data = self.vector_store.storage.get("audio", {})
-            video_data = self.vector_store.storage.get("video", {})
-            
-            # Extract transcript from audio events
+            # Initialize content structures
             transcript = []
-            if video_id in audio_data:
-                for item in audio_data[video_id]:
-                    if "text" in item:
+            visual_descriptions = []
+            
+            # Check if we have a timeline with content
+            if self.timeline and self.timeline.video_id == video_id:
+                # Extract transcript from audio events
+                for event in self.timeline.audio_events:
+                    if hasattr(event, 'text') and event.text:
                         transcript.append({
-                            "timestamp": item.get("timestamp", 0),
-                            "text": item["text"]
+                            "timestamp": event.timestamp,
+                            "text": event.text
+                        })
+                
+                # Extract visual descriptions from frame events
+                for event in self.timeline.frame_events:
+                    if hasattr(event, 'description') and event.description:
+                        visual_descriptions.append({
+                            "timestamp": event.timestamp,
+                            "description": event.description
+                        })
+                    elif hasattr(event, 'metadata') and event.metadata and 'description' in event.metadata:
+                        visual_descriptions.append({
+                            "timestamp": event.timestamp,
+                            "description": event.metadata['description']
                         })
             
-            # Extract visual descriptions from frame events
-            visual_descriptions = []
-            if video_id in video_data:
-                for item in video_data[video_id]:
-                    if "description" in item:
-                        visual_descriptions.append({
-                            "timestamp": item.get("timestamp", 0),
-                            "description": item["description"]
-                        })
+            # Fallback: Try to get content from vector store metadata
+            if not transcript and self.vector_store:
+                try:
+                    # Search for audio content in vector store
+                    dummy_query = np.zeros((1, 384))  # Dummy embedding for search
+                    audio_results = self.vector_store.search("audio", dummy_query, k=100)
+                    
+                    for result in audio_results:
+                        if result.get('text'):
+                            transcript.append({
+                                "timestamp": result.get('timestamp', 0),
+                                "text": result['text']
+                            })
+                except Exception as e:
+                    logger.warning(f"Could not extract audio content from vector store: {e}")
+            
+            if not visual_descriptions and self.vector_store:
+                try:
+                    # Search for video content in vector store
+                    dummy_query = np.zeros((1, 512))  # Dummy embedding for search
+                    video_results = self.vector_store.search("video", dummy_query, k=100)
+                    
+                    for result in video_results:
+                        if result.get('description'):
+                            visual_descriptions.append({
+                                "timestamp": result.get('timestamp', 0),
+                                "description": result['description']
+                            })
+                except Exception as e:
+                    logger.warning(f"Could not extract video content from vector store: {e}")
             
             return {
                 "transcript": transcript,
@@ -595,7 +709,22 @@ class VideoAnalyticsSystem:
                 "total_audio_segments": 0,
                 "total_visual_segments": 0
             }
-
+    def is_video_processed(self, video_id: str) -> bool:
+        """Check if a video has already been processed"""
+        if self.timeline is None:
+            return False
+        
+        # Check if video_id matches the current timeline
+        if self.timeline.video_id != video_id:
+            return False
+        
+        # Check if there's any content in the timeline
+        has_audio_content = len(self.timeline.audio_events) > 0
+        has_frame_content = len(self.timeline.frame_events) > 0
+        
+        return has_audio_content or has_frame_content
+    
+        
     def generate_intelligent_summary(self, video_id: str) -> str:
         """Generate intelligent summary using Gemini API"""
         try:
@@ -627,7 +756,7 @@ Please create a detailed summary that includes:
 Make the summary engaging and informative for someone who hasn't watched the video."""
 
             # Call Gemini API
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             response = model.generate_content(prompt)
             
             return response.text
@@ -658,7 +787,7 @@ Make the summary engaging and informative for someone who hasn't watched the vid
             return "No content available for summary generation."
         
         return "\n".join(summary_parts)
-
+        
     def answer_question(self, video_id: str, question: str) -> str:
         """Answer questions about the video using Gemini API"""
         try:
@@ -684,7 +813,7 @@ VISUAL DESCRIPTIONS:
 Please provide a clear, accurate answer based only on the information available in the content above. If the question cannot be answered from the available content, please say so."""
 
             # Call Gemini API
-            model = genai.GenerativeModel('gemini-pro')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             response = model.generate_content(prompt)
             
             return response.text
@@ -693,6 +822,7 @@ Please provide a clear, accurate answer based only on the information available 
             logger.error(f"Error answering question: {str(e)}")
             return f"Sorry, I couldn't answer your question due to an error: {str(e)}"
 
+    
 # ---------------- FastAPI App ----------------
 app = FastAPI(title="Enhanced Video Analysis API", version="2.0.0")
 
@@ -770,71 +900,211 @@ async def search_video_endpoint(request: dict):
 async def summarize_video_endpoint(request: VideoRequest):
     """Summarize a video with AI-generated insights"""
     try:
-        # Generate unique video ID
-        import uuid
-        video_id = str(uuid.uuid4())
+        # Generate consistent video ID from URL instead of random UUID
+        video_id = hashlib.md5(request.video_url.encode()).hexdigest()
+        logger.info(f"=== SUMMARIZE VIDEO START ===")
+        logger.info(f"Video URL: {request.video_url}")
+        logger.info(f"Generated video ID: {video_id}")
         
-        # Download video
+        # Check cache FIRST - this works across sessions
+        if video_id in summary_cache:
+            logger.info(f" CACHE HIT: Video {video_id} found in cache")
+            cached_result = summary_cache[video_id]
+            logger.info(f" Cached summary length: {len(cached_result['summary'])} characters")
+            logger.info(f" Cached vision API: {cached_result['vision_api_used']}")
+            logger.info(f" Cached frames analyzed: {cached_result['frames_analyzed']}")
+            
+            return {
+                "status": "success",
+                "summary": cached_result["summary"],
+                "platform": cached_result["platform"],
+                "frames_analyzed": cached_result["frames_analyzed"],
+                "video_duration": cached_result["video_duration"],
+                "has_audio_transcript": cached_result["has_audio_transcript"],
+                "vision_api_used": cached_result["vision_api_used"],
+                "frame_coverage_info": cached_result["frame_coverage_info"],
+                "cached": True
+            }
+        
+        logger.info(f" CACHE MISS: Video {video_id} not found in cache")
+        
+        # Check if video file already exists locally (avoid re-download)
         platform = identify_platform(request.video_url)
         video_path = os.path.join(WORK_DIR, f"{video_id}.mp4")
         
-        # Download video asynchronously
+        logger.info(f" Platform identified: {platform}")
+        logger.info(f" Checking local file: {video_path}")
+        
+        # If video file exists and current system has processed it, use existing data
+        if os.path.exists(video_path) and video_system.is_video_processed(video_id):
+            logger.info(f" LOCAL HIT: Video {video_id} exists and has been processed")
+            
+            # Get video duration using ffprobe
+            try:
+                probe = ffmpeg.probe(video_path)
+                video_duration = float(probe['streams'][0]['duration'])
+                logger.info(f" Video duration: {video_duration} seconds")
+            except Exception as e:
+                logger.warning(f" Could not get video duration: {str(e)}")
+                video_duration = 0
+            
+            # Generate intelligent summary using actual video content
+            logger.info(" Attempting to generate intelligent summary...")
+            try:
+                logger.info("Calling video_system.generate_intelligent_summary...")
+                intelligent_summary = video_system.generate_intelligent_summary(video_id)
+                
+                if intelligent_summary:
+                    logger.info(f" Intelligent summary generated successfully!")
+                    logger.info(f" Summary length: {len(intelligent_summary)} characters")
+                    logger.debug(f" Summary preview: {intelligent_summary[:200]}...")
+                    vision_api_used = "Gemini Pro"
+                else:
+                    logger.warning("  Intelligent summary returned None, falling back to basic")
+                    intelligent_summary = video_system.generate_basic_summary(video_id)
+                    vision_api_used = "Basic Analysis"
+                    
+            except Exception as e:
+                logger.error(f" Intelligent summary failed: {str(e)}")
+                logger.error(f"Error type: {type(e).__name__}")
+                intelligent_summary = video_system.generate_basic_summary(video_id)
+                vision_api_used = "Basic Analysis"
+            
+            # Get content details for metadata
+            content_info = video_system.get_video_content(video_id)
+            logger.info(f" Content info retrieved:")
+            logger.info(f"   - Audio segments: {content_info['total_audio_segments']}")
+            logger.info(f"   - Visual segments: {content_info['total_visual_segments']}")
+            logger.info(f"   - Has transcript: {len(content_info['transcript']) > 0}")
+            logger.info(f"   - Has visual descriptions: {len(content_info['visual_descriptions']) > 0}")
+            
+            frames_analyzed = 0
+            if video_system.timeline and hasattr(video_system.timeline, 'frame_events'):
+                frames_analyzed = len(video_system.timeline.frame_events)
+            elif content_info:
+                frames_analyzed = content_info.get('total_visual_segments', 0)
+            
+            # Cache and return
+            result = {
+                "status": "success",
+                "summary": intelligent_summary,
+                "platform": platform,
+                "frames_analyzed": frames_analyzed,
+                "video_duration": video_duration,
+                "has_audio_transcript": len(video_system.timeline.audio_events) > 0 if video_system.timeline and hasattr(video_system.timeline, 'audio_events') else content_info.get('total_audio_segments', 0) > 0,
+                "vision_api_used": vision_api_used,
+                "frame_coverage_info": {"status": "Good", "coverage": "Complete"},
+                "cached": True,
+                "content_preview": {
+                    "audio_segments": content_info["total_audio_segments"],
+                    "visual_segments": content_info["total_visual_segments"],
+                    "transcript_preview": [item["text"][:100] + "..." for item in content_info["transcript"][:3]] if content_info["transcript"] else [],
+                    "visual_preview": [item["description"][:100] + "..." for item in content_info["visual_descriptions"][:3]] if content_info["visual_descriptions"] else []
+                }
+            }
+            
+            logger.info(f" Caching result for video {video_id}")
+            summary_cache[video_id] = result
+            save_summary_cache(summary_cache)
+            logger.info("=== SUMMARIZE VIDEO COMPLETED (LOCAL) ===")
+            return result
+        
+        logger.info(f" LOCAL MISS: Video {video_id} not found locally, downloading...")
+        
+        # Only download and process if not cached and not locally processed
+        logger.info(f" Downloading video from {platform}...")
+        
+        # Download video
         success = await download_video_async(request.video_url, platform, video_path)
         
         if not success:
+            logger.error(" Video download failed!")
             raise HTTPException(status_code=400, detail="Failed to download video")
         
+        logger.info(" Video downloaded successfully!")
+        
         # Process video through the pipeline
+        logger.info(" Processing video through pipeline...")
         results = video_system.process_video(video_path, video_id)
+        logger.info(f" Video processing completed!")
         
         # Get video duration using ffprobe
         try:
             probe = ffmpeg.probe(video_path)
             video_duration = float(probe['streams'][0]['duration'])
-        except:
+            logger.info(f" Video duration: {video_duration} seconds")
+        except Exception as e:
+            logger.warning(f"  Could not get video duration: {str(e)}")
             video_duration = 0
         
-        # Generate AI summary based on processed content
-        # This is a simplified version - you can enhance it with more sophisticated summarization
-        audio_events = results.get("audio_events", 0)
-        frame_events = results.get("frame_events", 0)
+        # Generate intelligent summary using actual video content
+        logger.info(" Attempting to generate intelligent summary...")
+        try:
+            logger.info("Calling video_system.generate_intelligent_summary...")
+            intelligent_summary = video_system.generate_intelligent_summary(video_id)
+            
+            if intelligent_summary:
+                logger.info(f" Intelligent summary generated successfully!")
+                logger.info(f" Summary length: {len(intelligent_summary)} characters")
+                logger.debug(f" Summary preview: {intelligent_summary[:200]}...")
+                vision_api_used = "Gemini Pro"
+            else:
+                logger.warning("  Intelligent summary returned None, falling back to basic")
+                intelligent_summary = video_system.generate_basic_summary(video_id)
+                vision_api_used = "Basic Analysis"
+                
+        except Exception as e:
+            logger.error(f" Intelligent summary failed: {str(e)}")
+            logger.error(f"Error type: {type(e).__name__}")
+            intelligent_summary = video_system.generate_basic_summary(video_id)
+            vision_api_used = "Basic Analysis"
         
-        # Create a comprehensive summary
-        summary = f"""## Video Overview
-This video from {platform.upper()} has been analyzed using advanced AI techniques.
-
-## Key Findings
-- **Audio Content**: {audio_events} audio segments processed
-- **Visual Content**: {frame_events} key frames analyzed
-- **Duration**: {video_duration:.1f} seconds
-
-## Content Analysis
-The video has been processed through our multimodal AI pipeline, extracting both audio transcriptions and visual insights. This enables semantic search across both audio and visual content.
-
-## Technical Details
-- Audio embeddings: {results.get('audio_embeddings_shape', 'N/A')}
-- Frame embeddings: {results.get('frame_embeddings_shape', 'N/A')}
-- Processing completed successfully
-
-## Next Steps
-You can now search through this video content using natural language queries at the /search_video endpoint."""
+        # Get content details for metadata
+        content_info = video_system.get_video_content(video_id)
+        logger.info(f" Content info retrieved:")
+        logger.info(f"   - Audio segments: {content_info['total_audio_segments']}")
+        logger.info(f"   - Visual segments: {content_info['total_visual_segments']}")
+        logger.info(f"   - Has transcript: {len(content_info['transcript']) > 0}")
+        logger.info(f"   - Has visual descriptions: {len(content_info['visual_descriptions']) > 0}")
         
-        return {
+        frames_analyzed = 0
+        if video_system.timeline and hasattr(video_system.timeline, 'frame_events'):
+            frames_analyzed = len(video_system.timeline.frame_events)
+        elif content_info:
+            frames_analyzed = content_info.get('total_visual_segments', 0)
+        
+        # Prepare result with actual content analysis
+        result = {
             "status": "success",
-            "summary": summary,
+            "summary": intelligent_summary,
             "platform": platform,
-            "frames_analyzed": frame_events,
+            "frames_analyzed": frames_analyzed,
             "video_duration": video_duration,
-            "has_audio_transcript": audio_events > 0,
-            "vision_api_used": "OpenAI GPT-4",
+            "has_audio_transcript": len(video_system.timeline.audio_events) > 0 if video_system.timeline and hasattr(video_system.timeline, 'audio_events') else content_info.get('total_audio_segments', 0) > 0,
+            "vision_api_used": vision_api_used,
             "frame_coverage_info": {
                 "status": "Good",
                 "coverage": "Complete"
+            },
+            "cached": False,
+            "content_preview": {
+                "audio_segments": content_info["total_audio_segments"],
+                "visual_segments": content_info["total_visual_segments"],
+                "transcript_preview": [item["text"][:100] + "..." for item in content_info["transcript"][:3]] if content_info["transcript"] else [],
+                "visual_preview": [item["description"][:100] + "..." for item in content_info["visual_descriptions"][:3]] if content_info["visual_descriptions"] else []
             }
         }
         
+        logger.info(f" Caching result for video {video_id}")
+        summary_cache[video_id] = result
+        save_summary_cache(summary_cache)
+        logger.info("=== SUMMARIZE VIDEO COMPLETED (NEW) ===")
+        return result
+        
     except Exception as e:
-        logger.error(f"Error summarizing video: {str(e)}")
+        logger.error(f" CRITICAL ERROR in summarize_video_endpoint: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        logger.exception("Full traceback:")
         raise HTTPException(status_code=500, detail=str(e))
     
 @app.get("/health")

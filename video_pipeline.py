@@ -208,7 +208,36 @@ class VideoPipeline:
         
         logger.info(f"Generated embeddings with shape {all_embeddings.shape}")
         return all_embeddings
-    
+    def embed_text(self, text: str) -> np.ndarray:
+        """
+        Generate CLIP text embedding for search queries
+        
+        Args:
+            text: Text query to embed
+            
+        Returns:
+            Numpy array of text embedding
+        """
+        logger.info(f"Generating text embedding for: {text}")
+        
+        # Get tokenizer for the model
+        tokenizer = open_clip.get_tokenizer(self.vision_model_name)
+        
+        # Tokenize text
+        text_tokens = tokenizer([text]).to(self.device)
+        
+        # Generate text embedding
+        with torch.no_grad():
+            text_embedding = self.model.encode_text(text_tokens)
+            
+            # Normalize embedding
+            text_embedding = text_embedding / text_embedding.norm(dim=-1, keepdim=True)
+        
+        # Convert to numpy
+        text_embedding_np = text_embedding.cpu().numpy().squeeze()
+        
+        logger.info(f"Generated text embedding with shape {text_embedding_np.shape}")
+        return text_embedding_np
     def process(
         self,
         video_path: Path,

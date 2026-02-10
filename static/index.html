@@ -21,6 +21,7 @@
             padding: 20px;
             color: #fff;
         }
+
         h1 {
             text-align: center;
             margin-bottom: 40px;
@@ -30,6 +31,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
         .container {
             max-width: 1000px;
             margin: 0 auto;
@@ -125,6 +127,34 @@
             padding: 30px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             display: none;
+        }
+
+        .transcript-preview,
+        .visual-preview {
+            margin-bottom: 15px;
+        }
+
+        .transcript-preview h4,
+        .visual-preview h4 {
+            color: #22c55e;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .visual-preview h4 {
+            color: #3b82f6;
+        }
+
+        .preview-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 6px;
+            border-left: 3px solid #22c55e;
+        }
+
+        .visual-preview .preview-item {
+            border-left-color: #3b82f6;
         }
 
         .summary-card.show {
@@ -484,7 +514,8 @@
                 opacity: 1;
             }
         }
-                .search-section {
+
+        .search-section {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border-radius: 16px;
@@ -651,6 +682,7 @@
             background: rgba(96, 165, 250, 0.1);
             color: rgba(255, 255, 255, 0.8);
         }
+
         .error-message {
             background: rgba(239, 68, 68, 0.1);
             border: 2px solid rgba(239, 68, 68, 0.5);
@@ -722,7 +754,9 @@
 
 <body>
     <div class="container">
-        <h1 class="text-center"><div>AI Video Summarizer</h1>
+        <h1 class="text-center">
+            <div>AI Video Summarizer
+        </h1>
         <div class="input-section">
             <input type="text" class="url-input" id="videoUrl"
                 placeholder="https://youtu.be/bUHe3M4ktU?si=DATTJm6DScGzHAB">
@@ -771,15 +805,15 @@
                 <span>View Raw Summary</span>
             </button>
         </div>
-                <!-- Search Section -->
+        <!-- Search Section -->
         <div class="search-section" id="searchSection">
             <h3 class="section-title">
                 <span>🔍</span>
                 <span>Search Video Content</span>
             </h3>
-            
+
             <div class="search-input-group">
-                <input type="text" class="search-input" id="searchQuery" 
+                <input type="text" class="search-input" id="searchQuery"
                     placeholder="Ask questions about the video content...">
                 <button class="search-btn" id="searchBtn">
                     <span>🔍</span>
@@ -949,9 +983,77 @@
             // Set platform badge
             platformBadge.textContent = data.platform.toUpperCase();
 
-            // Format and display summary
-            currentRawSummary = data.summary;
-            summaryContent.innerHTML = formatSummary(data.summary);
+            // Handle new content preview if available
+            let summaryHtml = '';
+
+            if (data.content_preview) {
+                // Display content preview with transcript and visual information
+                let contentPreviewHtml = '';
+
+                // Add transcript preview if available
+                if (data.content_preview.transcript_preview && data.content_preview.transcript_preview.length > 0) {
+                    contentPreviewHtml += '<div class="transcript-preview"><h4>📝 Key Transcript Moments:</h4>';
+                    data.content_preview.transcript_preview.forEach(item => {
+                        contentPreviewHtml += `<div class="preview-item">
+                    <strong>${formatTimestamp(item.timestamp)}:</strong> ${highlightTimestamps(item.text)}
+                </div>`;
+                    });
+                    contentPreviewHtml += '</div>';
+                }
+
+                // Add visual preview if available
+                if (data.content_preview.visual_preview && data.content_preview.visual_preview.length > 0) {
+                    contentPreviewHtml += '<div class="visual-preview"><h4>🎬 Visual Elements:</h4>';
+                    data.content_preview.visual_preview.forEach(item => {
+                        contentPreviewHtml += `<div class="preview-item">
+                    <strong>${formatTimestamp(item.timestamp)}:</strong> ${item.description}
+                </div>`;
+                    });
+                    contentPreviewHtml += '</div>';
+                }
+
+                summaryHtml += `
+            <div class="summary-section">
+                <h3 class="section-title">
+                    <span>🎬</span>
+                    <span>Video Content Overview</span>
+                </h3>
+                <div class="section-content">
+                    ${contentPreviewHtml}
+                </div>
+            </div>
+        `;
+            }
+
+            // Add the main summary
+            if (data.summary) {
+                summaryHtml += formatSummary(data.summary);
+            }
+
+            summaryContent.innerHTML = summaryHtml;
+
+            // Set raw summary for the view raw button
+            if (data.summary) {
+                currentRawSummary = data.summary;
+            } else if (data.content_preview) {
+                // Convert content preview to readable format for raw view
+                let rawContent = '';
+                if (data.content_preview.transcript_preview) {
+                    rawContent += 'TRANSCRIPT PREVIEW:\n';
+                    data.content_preview.transcript_preview.forEach(item => {
+                        rawContent += `${formatTimestamp(item.timestamp)}: ${item.text}\n`;
+                    });
+                }
+                if (data.content_preview.visual_preview) {
+                    rawContent += '\nVISUAL PREVIEW:\n';
+                    data.content_preview.visual_preview.forEach(item => {
+                        rawContent += `${formatTimestamp(item.timestamp)}: ${item.description}\n`;
+                    });
+                }
+                currentRawSummary = rawContent;
+            } else {
+                currentRawSummary = 'No summary available';
+            }
 
             // Display metadata
             const metadata = [
@@ -962,12 +1064,27 @@
                 { label: 'Coverage Status', value: data.frame_coverage_info?.status || 'Good' }
             ];
 
+            // Add content-specific metadata if available
+            if (data.content_preview && data.content_preview.transcript_preview) {
+                metadata.push({
+                    label: 'Transcript Snippets',
+                    value: `${data.content_preview.transcript_preview.length} found`
+                });
+            }
+
+            if (data.content_preview && data.content_preview.visual_preview) {
+                metadata.push({
+                    label: 'Visual Elements',
+                    value: `${data.content_preview.visual_preview.length} detected`
+                });
+            }
+
             metadataGrid.innerHTML = metadata.map(item => `
-                <div class="metadata-item">
-                    <div class="metadata-label">${item.label}</div>
-                    <div class="metadata-value">${item.value}</div>
-                </div>
-            `).join('');
+        <div class="metadata-item">
+            <div class="metadata-label">${item.label}</div>
+            <div class="metadata-value">${item.value}</div>
+        </div>
+    `).join('');
 
             // Show summary card
             summaryCard.classList.add('show');
@@ -976,6 +1093,7 @@
             setTimeout(() => {
                 summaryCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 300);
+
             // Show search section
             showSearchSection();
         }
@@ -1037,7 +1155,7 @@
 
         async function searchVideo() {
             const query = searchQuery.value.trim();
-            
+
             if (!query) {
                 showError('Please enter a search query');
                 return;
@@ -1057,7 +1175,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ 
+                    body: JSON.stringify({
                         query: query,
                         query_type: 'both',
                         top_k: 5
@@ -1086,7 +1204,7 @@
 
         function displaySearchResults(results) {
             let html = '';
-            
+
             if (results.audio_results && results.audio_results.metadata.length > 0) {
                 html += '<h4 style="color: #22c55e; margin-bottom: 12px;">🎵 Audio Results</h4>';
                 results.audio_results.metadata.forEach((result, index) => {
