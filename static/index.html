@@ -845,7 +845,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:8000';
+        const API_URL = 'http://localhost:9000';
 
         const videoUrlInput = document.getElementById('videoUrl');
         const summarizeBtn = document.getElementById('summarizeBtn');
@@ -862,6 +862,11 @@
 
         // Highlight timestamps in text
         function highlightTimestamps(text) {
+            // Add null check
+            if (!text || typeof text !== 'string') {
+                return '';
+            }
+
             // Convert **text** to bold
             let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
@@ -872,6 +877,11 @@
 
         // Parse and format summary
         function formatSummary(summary) {
+            // Add null check
+            if (!summary || typeof summary !== 'string') {
+                return '<div class="summary-section"><h3 class="section-title"><span>📌</span><span>Summary</span></h3><div class="section-content">No summary available</div></div>';
+            }
+
             const lines = summary.split('\n');
             let html = '';
             let currentSection = '';
@@ -913,17 +923,19 @@
 
         function createSection(title, content) {
             const icon = getIconForSection(title);
-            const formattedContent = highlightTimestamps(content.trim());
+            // Add null checks for content
+            const safeContent = content ? content.trim() : '';
+            const formattedContent = highlightTimestamps(safeContent);
 
             return `
-                <div class="summary-section">
-                    <h3 class="section-title">
-                        <span>${icon}</span>
-                        <span>${title}</span>
-                    </h3>
-                    <div class="section-content">${formattedContent}</div>
-                </div>
-            `;
+        <div class="summary-section">
+            <h3 class="section-title">
+                <span>${icon}</span>
+                <span>${title}</span>
+            </h3>
+            <div class="section-content">${formattedContent}</div>
+        </div>
+    `;
         }
 
         function getIconForSection(title) {
@@ -980,8 +992,8 @@
         }
 
         function displaySummary(data) {
-            // Set platform badge
-            platformBadge.textContent = data.platform.toUpperCase();
+            // Set platform badge with null check
+            platformBadge.textContent = data.platform ? data.platform.toUpperCase() : 'UNKNOWN';
 
             // Handle new content preview if available
             let summaryHtml = '';
@@ -994,9 +1006,11 @@
                 if (data.content_preview.transcript_preview && data.content_preview.transcript_preview.length > 0) {
                     contentPreviewHtml += '<div class="transcript-preview"><h4>📝 Key Transcript Moments:</h4>';
                     data.content_preview.transcript_preview.forEach(item => {
-                        contentPreviewHtml += `<div class="preview-item">
-                    <strong>${formatTimestamp(item.timestamp)}:</strong> ${highlightTimestamps(item.text)}
-                </div>`;
+                        if (item && item.timestamp && item.text) {
+                            contentPreviewHtml += `<div class="preview-item">
+                        <strong>${formatTimestamp(item.timestamp)}:</strong> ${highlightTimestamps(item.text)}
+                    </div>`;
+                        }
                     });
                     contentPreviewHtml += '</div>';
                 }
@@ -1005,9 +1019,11 @@
                 if (data.content_preview.visual_preview && data.content_preview.visual_preview.length > 0) {
                     contentPreviewHtml += '<div class="visual-preview"><h4>🎬 Visual Elements:</h4>';
                     data.content_preview.visual_preview.forEach(item => {
-                        contentPreviewHtml += `<div class="preview-item">
-                    <strong>${formatTimestamp(item.timestamp)}:</strong> ${item.description}
-                </div>`;
+                        if (item && item.timestamp && item.description) {
+                            contentPreviewHtml += `<div class="preview-item">
+                        <strong>${formatTimestamp(item.timestamp)}:</strong> ${item.description}
+                    </div>`;
+                        }
                     });
                     contentPreviewHtml += '</div>';
                 }
@@ -1041,16 +1057,20 @@
                 if (data.content_preview.transcript_preview) {
                     rawContent += 'TRANSCRIPT PREVIEW:\n';
                     data.content_preview.transcript_preview.forEach(item => {
-                        rawContent += `${formatTimestamp(item.timestamp)}: ${item.text}\n`;
+                        if (item && item.timestamp && item.text) {
+                            rawContent += `${formatTimestamp(item.timestamp)}: ${item.text}\n`;
+                        }
                     });
                 }
                 if (data.content_preview.visual_preview) {
                     rawContent += '\nVISUAL PREVIEW:\n';
                     data.content_preview.visual_preview.forEach(item => {
-                        rawContent += `${formatTimestamp(item.timestamp)}: ${item.description}\n`;
+                        if (item && item.timestamp && item.description) {
+                            rawContent += `${formatTimestamp(item.timestamp)}: ${item.description}\n`;
+                        }
                     });
                 }
-                currentRawSummary = rawContent;
+                currentRawSummary = rawContent || 'No content available';
             } else {
                 currentRawSummary = 'No summary available';
             }

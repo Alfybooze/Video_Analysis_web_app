@@ -634,7 +634,7 @@ class VideoAnalyticsSystem:
         
         return results[:top_k]
     def get_video_content(self, video_id: str) -> dict:
-        """Extract actual content from video processing results"""
+        """Extract actual content from video processing results with dynamic visual description generation"""
         try:
             # Initialize content structures
             transcript = []
@@ -650,18 +650,45 @@ class VideoAnalyticsSystem:
                             "text": event.text
                         })
                 
-                # Extract visual descriptions from frame events
-                for event in self.timeline.frame_events:
-                    if hasattr(event, 'description') and event.description:
-                        visual_descriptions.append({
-                            "timestamp": event.timestamp,
-                            "description": event.description
-                        })
-                    elif hasattr(event, 'metadata') and event.metadata and 'description' in event.metadata:
-                        visual_descriptions.append({
-                            "timestamp": event.timestamp,
-                            "description": event.metadata['description']
-                        })
+                # Generate visual descriptions dynamically from frame events
+                if self.timeline.frame_events:
+                    # Group frames into segments for description generation
+                    segment_size = max(1, len(self.timeline.frame_events) // 10)  # Create ~10 segments
+                    
+                    for i in range(0, len(self.timeline.frame_events), segment_size):
+                        segment_frames = self.timeline.frame_events[i:i + segment_size]
+                        
+                        if segment_frames:
+                            # Get first and last frame timestamps for the segment
+                            start_time = segment_frames[0].timestamp
+                            end_time = segment_frames[-1].timestamp
+                            
+                            # Prepare frame data for description generation
+                            frame_dicts = []
+                            for frame_event in segment_frames:
+                                if frame_event.frame_path and os.path.exists(frame_event.frame_path):
+                                    frame_dicts.append({
+                                        'path': frame_event.frame_path,
+                                        'timestamp': frame_event.timestamp
+                                    })
+                            
+                            # Generate visual description for this segment
+                            if frame_dicts:
+                                try:
+                                    # Use the same method as query analyzer for consistency
+                                    visual_description = self._generate_visual_description_for_segment(frame_dicts)
+                                    
+                                    visual_descriptions.append({
+                                        "timestamp": start_time,
+                                        "description": visual_description
+                                    })
+                                except Exception as e:
+                                    logger.warning(f"Could not generate visual description for segment {start_time}s-{end_time}s: {e}")
+                                    # Fallback to basic description
+                                    visual_descriptions.append({
+                                        "timestamp": start_time,
+                                        "description": f"Video segment from {start_time:.1f}s to {end_time:.1f}s with {len(segment_frames)} frames"
+                                    })
             
             # Fallback: Try to get content from vector store metadata
             if not transcript and self.vector_store:
@@ -679,21 +706,6 @@ class VideoAnalyticsSystem:
                 except Exception as e:
                     logger.warning(f"Could not extract audio content from vector store: {e}")
             
-            if not visual_descriptions and self.vector_store:
-                try:
-                    # Search for video content in vector store
-                    dummy_query = np.zeros((1, 512))  # Dummy embedding for search
-                    video_results = self.vector_store.search("video", dummy_query, k=100)
-                    
-                    for result in video_results:
-                        if result.get('description'):
-                            visual_descriptions.append({
-                                "timestamp": result.get('timestamp', 0),
-                                "description": result['description']
-                            })
-                except Exception as e:
-                    logger.warning(f"Could not extract video content from vector store: {e}")
-            
             return {
                 "transcript": transcript,
                 "visual_descriptions": visual_descriptions,
@@ -709,6 +721,47 @@ class VideoAnalyticsSystem:
                 "total_audio_segments": 0,
                 "total_visual_segments": 0
             }
+            
+    def _generate_visual_description_for_segment(self, frame_dicts: List[Dict]) -> str:
+        """Generate visual description for a segment using Gemini vision model"""
+        try:
+            # Import required modules
+            from PIL import Image
+            import google.generativeai as genai
+            
+            # Prepare the prompt for the vision model
+            prompt = "Describe the key visual elements and actions across these frames in a single, concise sentence."
+            
+            # Select a subset of frames to pass to the model (limit to avoid overwhelming the API)
+            max_frames_to_llm = min(len(frame_dicts), 5)  # Limit to 5 frames max
+            indices = np.linspace(0, len(frame_dicts) - 1, num=max_frames_to_llm, dtype=int)
+            selected_frames = [frame_dicts[i] for i in indices]
+            
+            # Prepare the images for the model
+            model_input: List[Any] = [prompt]
+            for frame in selected_frames:
+                try:
+                    img = Image.open(frame['path'])
+                    model_input.append(img)
+                except FileNotFoundError:
+                    logger.warning(f"Frame not found at {frame['path']}, skipping.")
+                    continue
+            
+            if len(model_input) <= 1:
+                return "Could not load frames for description."
+            
+            # Call the Gemini API
+            try:
+                model = genai.GenerativeModel('gemini-2.5-flash-lite')
+                response = model.generate_content(model_input)
+                return response.text.strip()
+            except Exception as e:
+                logger.error(f"Error generating visual description with Gemini: {e}")
+                return "Error generating visual description."
+                
+        except Exception as e:
+            logger.error(f"Error in _generate_visual_description_for_segment: {e}")
+            return "Visual description unavailable."
     def is_video_processed(self, video_id: str) -> bool:
         """Check if a video has already been processed"""
         if self.timeline is None:
@@ -726,45 +779,225 @@ class VideoAnalyticsSystem:
     
         
     def generate_intelligent_summary(self, video_id: str) -> str:
-        """Generate intelligent summary using Gemini API"""
+        """Generate intelligent summary using Gemini API with embedding-based content selection"""
         try:
-            # Get video content
-            content = self.get_video_content(video_id)
-            
-            if not content["transcript"] and not content["visual_descriptions"]:
+            # Check if vector store is initialized
+            if self.vector_store is None:
                 return self.generate_basic_summary(video_id)
             
-            # Prepare content for Gemini
-            transcript_text = "\n".join([f"[{item['timestamp']:.1f}s] {item['text']}" for item in content["transcript"]])
-            visual_text = "\n".join([f"[{item['timestamp']:.1f}s] {item['description']}" for item in content["visual_descriptions"]])
+            # Search for representative content using embedding similarity
+            key_transcript_items = []
+            key_frame_descriptions = []
+            
+            # Get representative transcript content
+            try:
+                # Search audio store for diverse content
+                if hasattr(self.vector_store, 'audio_store') and self.vector_store.audio_store.index.ntotal > 0:
+                    # Create a query that should match general content
+                    general_query = "main topic important content"
+                    audio_query_embedding = self.audio_pipeline.embed_text(general_query)
+                    audio_results = self.vector_store.search("audio", audio_query_embedding, k=5)
+                    
+                    for result in audio_results:
+                        if 'text' in result and 'timestamp' in result:
+                            key_transcript_items.append({
+                                "timestamp": result.get('timestamp', 0),
+                                "text": result['text']
+                            })
+            except Exception as e:
+                logger.warning(f"Could not get representative transcript content: {e}")
+            
+            # Get representative frame content  
+            try:
+                # Search video store for diverse content
+                if hasattr(self.vector_store, 'video_store') and self.vector_store.video_store.index.ntotal > 0:
+                    # Create a query for visual content
+                    visual_query = "key visual scene important moment"
+                    video_query_embedding = self.video_pipeline.embed_text(visual_query)
+                    video_results = self.vector_store.search("video", video_query_embedding, k=5)
+                    
+                    for result in video_results:
+                        if 'description' in result and 'timestamp' in result:
+                            key_frame_descriptions.append({
+                                "timestamp": result.get('timestamp', 0),
+                                "description": result['description']
+                            })
+            except Exception as e:
+                logger.warning(f"Could not get representative frame content: {e}")
+            
+            # Fallback to basic content if embedding search fails
+            if not key_transcript_items and not key_frame_descriptions:
+                return self.generate_basic_summary(video_id)
+            
+            # Prepare content for Gemini using representative samples
+            transcript_text = "\n".join([f"[{item['timestamp']:.1f}s] {item['text']}" for item in key_transcript_items])
+            visual_text = "\n".join([f"[{item['timestamp']:.1f}s] {item['description']}" for item in key_frame_descriptions])
             
             # Create comprehensive prompt for Gemini
-            prompt = f"""Please provide a comprehensive summary of this video based on the following content:
+            prompt = f"""Please provide a comprehensive summary of this video based on the following representative content:
 
-AUDIO TRANSCRIPT:
-{transcript_text}
+    AUDIO TRANSCRIPT (Key Segments):
+    {transcript_text}
 
-VISUAL DESCRIPTIONS:
-{visual_text}
+    VISUAL DESCRIPTIONS (Key Moments):
+    {visual_text}
 
-Please create a detailed summary that includes:
-1. Main topics and key points discussed
-2. Important visual elements and scenes
-3. Overall narrative or message
-4. Key timestamps for important moments
+    Based on these representative segments, please create a detailed summary that includes:
+    1. Main topics and key points discussed
+    2. Important visual elements and scenes
+    3. Overall narrative or message
+    4. Key timestamps for important moments
 
-Make the summary engaging and informative for someone who hasn't watched the video."""
+    Make the summary engaging and informative for someone who hasn't watched the video."""
 
             # Call Gemini API
-            model = genai.GenerativeModel('gemini-2.5-flash')
+            model = genai.GenerativeModel('gemini-2.5-flash-lite')
             response = model.generate_content(prompt)
             
             return response.text
             
         except Exception as e:
-            logger.error(f"Error generating intelligent summary: {str(e)}")
+            logger.error(f"Error generating intelligent summary with embedding selection: {str(e)}")
             return self.generate_basic_summary(video_id)
+    def get_comprehensive_video_analysis(self, video_id: str) -> Dict[str, Any]:
+        """Get comprehensive video analysis with full summary, key transcript moments, and key frames with timestamps"""
+        try:
+            # Check if vector store is initialized
+            if self.vector_store is None:
+                logger.warning("Vector store not initialized, falling back to basic content")
+                content = self.get_video_content(video_id)
+                return {
+                    "full_summary": self.generate_basic_summary(video_id),
+                    "key_transcript_moments": content.get("transcript", [])[:5],
+                    "key_frame_moments": content.get("visual_descriptions", [])[:5],
+                    "method": "basic"
+                }
+            
+            # Initialize results
+            key_transcript_moments = []
+            key_frame_moments = []
+            
+            # Get representative transcript content using diverse queries
+            try:
+                if hasattr(self.vector_store, 'audio_store') and self.vector_store.audio_store.index.ntotal > 0:
+                    # Use multiple diverse queries to find key content
+                    queries = [
+                        "main topic important speech",
+                        "key discussion points",
+                        "significant dialogue",
+                        "important announcement",
+                        "critical information"
+                    ]
+                    
+                    seen_texts = set()
+                    for query in queries:
+                        if len(key_transcript_moments) >= 5:
+                            break
+                            
+                        audio_query_embedding = self.audio_pipeline.embed_text(query)
+                        audio_results = self.vector_store.search("audio", audio_query_embedding, k=3)
+                        
+                        for result in audio_results:
+                            if 'text' in result and 'timestamp' in result:
+                                text = result['text']
+                                if text not in seen_texts and len(text) > 20:  # Avoid duplicates and very short texts
+                                    seen_texts.add(text)
+                                    key_transcript_moments.append({
+                                        "timestamp": result.get('timestamp', 0),
+                                        "text": text,
+                                        "duration": result.get('duration', 0),
+                                        "confidence": result.get('confidence', 0)
+                                    })
+            except Exception as e:
+                logger.warning(f"Could not get representative transcript content: {e}")
+            
+            # Get representative frame content using diverse queries
+            try:
+                if hasattr(self.vector_store, 'video_store') and self.vector_store.video_store.index.ntotal > 0:
+                    # Use multiple diverse queries to find key visual moments
+                    visual_queries = [
+                        "key visual scene important moment",
+                        "significant visual event",
+                        "important visual detail",
+                        "critical visual information",
+                        "notable visual element"
+                    ]
+                    
+                    seen_descriptions = set()
+                    for query in visual_queries:
+                        if len(key_frame_moments) >= 5:
+                            break
+                            
+                        video_query_embedding = self.video_pipeline.embed_text(query)
+                        video_results = self.vector_store.search("video", video_query_embedding, k=3)
+                        
+                        for result in video_results:
+                            if 'description' in result and 'timestamp' in result:
+                                description = result['description']
+                                if description not in seen_descriptions and len(description) > 15:  # Avoid duplicates and short descriptions
+                                    seen_descriptions.add(description)
+                                    key_frame_moments.append({
+                                        "timestamp": result.get('timestamp', 0),
+                                        "description": description,
+                                        "frame_index": result.get('frame_index', 0),
+                                        "confidence": result.get('confidence', 0)
+                                    })
+            except Exception as e:
+                logger.warning(f"Could not get representative frame content: {e}")
+            
+            # Fallback to basic content if embedding search fails
+            if not key_transcript_moments and not key_frame_moments:
+                content = self.get_video_content(video_id)
+                key_transcript_moments = content.get("transcript", [])[:5]
+                key_frame_moments = content.get("visual_descriptions", [])[:5]
+            
+            # Generate comprehensive summary using the key content
+            transcript_text = "\n".join([f"[{item['timestamp']:.1f}s] {item['text']}" for item in key_transcript_moments])
+            visual_text = "\n".join([f"[{item['timestamp']:.1f}s] {item['description']}" for item in key_frame_moments])
+            
+            # Create comprehensive prompt for Gemini
+            prompt = f"""Please provide a comprehensive summary of this video based on the following key content segments:
 
+KEY AUDIO TRANSCRIPT MOMENTS:
+{transcript_text}
+
+KEY VISUAL FRAME MOMENTS:
+{visual_text}
+
+Based on these key moments, please create a detailed summary that includes:
+1. Main topics and key points discussed
+2. Important visual elements and scenes  
+3. Overall narrative or message
+4. Key timestamps for important moments
+5. The emotional tone and atmosphere
+
+Make the summary engaging and informative for someone who hasn't watched the video. Include specific timestamps when mentioning important moments."""
+
+            # Call Gemini API for full summary
+            model = genai.GenerativeModel('gemini-2.5-flash-lite')
+            response = model.generate_content(prompt)
+            full_summary = response.text
+            
+            return {
+                "full_summary": full_summary,
+                "key_transcript_moments": key_transcript_moments,
+                "key_frame_moments": key_frame_moments,
+                "method": "embedding_based",
+                "total_audio_segments": len(key_transcript_moments),
+                "total_visual_segments": len(key_frame_moments)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error generating comprehensive video analysis: {str(e)}")
+            # Fallback to basic content
+            content = self.get_video_content(video_id)
+            return {
+                "full_summary": self.generate_basic_summary(video_id),
+                "key_transcript_moments": content.get("transcript", [])[:5],
+                "key_frame_moments": content.get("visual_descriptions", [])[:5],
+                "method": "basic_fallback",
+                "error": str(e)
+            }
     def generate_basic_summary(self, video_id: str) -> str:
         """Generate basic summary when Gemini is not available"""
         content = self.get_video_content(video_id)
@@ -813,7 +1046,7 @@ VISUAL DESCRIPTIONS:
 Please provide a clear, accurate answer based only on the information available in the content above. If the question cannot be answered from the available content, please say so."""
 
             # Call Gemini API
-            model = genai.GenerativeModel('gemini-2.5-flash')
+            model = genai.GenerativeModel('gemini-2.5-flash-lite')
             response = model.generate_content(prompt)
             
             return response.text
@@ -983,23 +1216,38 @@ async def summarize_video_endpoint(request: VideoRequest):
                 frames_analyzed = len(video_system.timeline.frame_events)
             elif content_info:
                 frames_analyzed = content_info.get('total_visual_segments', 0)
-            
+                
+            comprehensive_analysis = video_system.get_comprehensive_video_analysis(video_id)
             # Cache and return
             result = {
                 "status": "success",
-                "summary": intelligent_summary,
+                "summary": comprehensive_analysis["comprehensive_summary"],
                 "platform": platform,
-                "frames_analyzed": frames_analyzed,
+                "frames_analyzed": comprehensive_analysis["key_visual_moments"],
                 "video_duration": video_duration,
-                "has_audio_transcript": len(video_system.timeline.audio_events) > 0 if video_system.timeline and hasattr(video_system.timeline, 'audio_events') else content_info.get('total_audio_segments', 0) > 0,
+                "has_audio_transcript": len(comprehensive_analysis["key_transcript_moments"]) > 0,
                 "vision_api_used": vision_api_used,
-                "frame_coverage_info": {"status": "Good", "coverage": "Complete"},
-                "cached": True,
+                "frame_coverage_info": {
+                    "status": "Good",
+                    "coverage": "Complete"
+                },
+                "cached": False,
                 "content_preview": {
-                    "audio_segments": content_info["total_audio_segments"],
-                    "visual_segments": content_info["total_visual_segments"],
-                    "transcript_preview": [item["text"][:100] + "..." for item in content_info["transcript"][:3]] if content_info["transcript"] else [],
-                    "visual_preview": [item["description"][:100] + "..." for item in content_info["visual_descriptions"][:3]] if content_info["visual_descriptions"] else []
+                    "audio_segments": len(comprehensive_analysis["key_transcript_moments"]),
+                    "visual_segments": len(comprehensive_analysis["key_visual_moments"]),
+                    "transcript_preview": [
+                        {
+                            "timestamp": item["timestamp"],
+                            "text": item["text"][:200] + "..." if len(item["text"]) > 200 else item["text"]
+                        } for item in comprehensive_analysis["key_transcript_moments"][:3]
+                    ],
+                    "visual_preview": [
+                        {
+                            "timestamp": item["timestamp"], 
+                            "description": f"Visual moment at {item['timestamp']}s"
+                        } for item in comprehensive_analysis["key_visual_moments"][:3]
+                    ],
+                    "method": comprehensive_analysis.get("method", "embedding_based")
                 }
             }
             
@@ -1008,6 +1256,7 @@ async def summarize_video_endpoint(request: VideoRequest):
             save_summary_cache(summary_cache)
             logger.info("=== SUMMARIZE VIDEO COMPLETED (LOCAL) ===")
             return result
+            
         
         logger.info(f" LOCAL MISS: Video {video_id} not found locally, downloading...")
         
@@ -1294,4 +1543,4 @@ async def download_video_async(url: str, platform: str, output_path: str) -> boo
 # ---------------- Main Execution ----------------
 if __name__ == "__main__":
     logger.info("Starting Enhanced Video Analysis Web Application")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=9000)
