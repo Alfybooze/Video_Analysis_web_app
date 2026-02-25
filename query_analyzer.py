@@ -71,7 +71,7 @@ class QueryAnalyzer:
             if not settings.GEMINI_API_KEY:
                 raise ValueError("GEMINI_API_KEY not set")
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            self.llm_client = genai.GenerativeModel('gemini-2.5-pro')
+            self.llm_client = genai.GenerativeModel('gemini-2.5-flash')
             logger.info("Initialized Gemini LLM client")
         
         elif self.llm_provider == "anthropic":
@@ -99,7 +99,7 @@ class QueryAnalyzer:
             
         try:
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            self.gemini_vision_client = genai.GenerativeModel('gemini-2.5-pro')
+            self.gemini_vision_client = genai.GenerativeModel('gemini-2.5-flash')
             logger.info("Initialized dedicated Gemini vision client")
         except Exception as e:
             logger.error(f"Failed to initialize Gemini vision client: {e}")

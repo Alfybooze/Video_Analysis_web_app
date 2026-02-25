@@ -165,7 +165,42 @@ class AudioPipeline:
         
         logger.info(f"Generated embeddings with shape {embeddings.shape}")
         return embeddings
-    
+    def detect_music(self, audio_events: List[AudioEvent], embeddings: np.ndarray, threshold: float = 0.6) -> None:
+        """
+        Detects music in audio segments using zero-shot classification on embeddings.
+        Updates AudioEvent metadata in place.
+
+        Args:
+            audio_events: List of AudioEvent objects.
+            embeddings: Numpy array of embeddings for the audio events.
+            threshold: Cosine similarity threshold to classify as music.
+        """
+        if self.embed_model is None:
+            logger.warning("Embedding model not available, skipping music detection.")
+            return
+
+        logger.info("Detecting music in audio segments...")
+        
+        # Embed the labels "music" and "speech"
+        label_embeddings = self.embed_model.encode(["music", "speech"], convert_to_tensor=True)
+        
+        # Normalize embeddings for cosine similarity
+        label_embeddings = label_embeddings / label_embeddings.norm(dim=1, keepdim=True)
+        segment_embeddings = embeddings / np.linalg.norm(embeddings, axis=1, keepdims=True)
+
+        # Calculate cosine similarity
+        similarities = segment_embeddings @ label_embeddings.T
+
+        for i, event in enumerate(audio_events):
+            music_similarity = similarities[i, 0]
+            speech_similarity = similarities[i, 1]
+            
+            is_music = music_similarity > speech_similarity and music_similarity > threshold
+            event.metadata['is_music'] = bool(is_music)
+
+            if is_music:
+                logger.debug(f"Segment at {event.timestamp:.2f}s classified as MUSIC (score: {music_similarity:.2f})")
+                
     def process(self, video_path: Path, timeline: MasterTimeline) -> tuple[List[AudioEvent], np.ndarray]:
         """
         Complete audio pipeline processing
@@ -194,6 +229,9 @@ class AudioPipeline:
         
         # Step 5: Generate embeddings
         embeddings = self.generate_embeddings(audio_events)
+        
+        # Step 6: Detect music segments
+        self.detect_music(audio_events, embeddings)
         
         logger.info("Audio pipeline processing complete")
         
