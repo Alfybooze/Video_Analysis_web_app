@@ -1313,6 +1313,12 @@ async def summarize_video_endpoint(request: VideoRequest):
             if os.path.exists(temp_audio_path):
                 os.remove(temp_audio_path)
                 logger.info(f" Cleaned up: Deleted temporary audio file {temp_audio_path}")
+            
+            import shutil
+            frame_dir_path = os.path.join("./temp/videos/frames", video_id)
+            if os.path.exists(frame_dir_path):
+                shutil.rmtree(frame_dir_path)
+                logger.info(f" Cleaned up: Deleted frame directory {frame_dir_path}")
                 
         except Exception as cleanup_error:
             logger.warning(f" Failed to delete files: {cleanup_error}")
