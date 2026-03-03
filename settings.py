@@ -45,7 +45,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = Field(default="sqlite:///./data/video_analytics.db")
     
     # Processing
-    BATCH_SIZE: int = Field(default=32)
+    BATCH_SIZE: int = Field(default=8)
     NUM_WORKERS: int = Field(default=4)
     DEVICE: str = Field(default="cuda" if os.path.exists("/dev/nvidia0") else "cpu")
     

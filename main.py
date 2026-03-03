@@ -308,8 +308,8 @@ class VideoAnalyticsSystem:
         self.video_pipeline = VideoPipeline()
         logger.info("All components initialized")
     
-    def process_video(self, video_path: str, video_id: str) -> Dict[str, Any]:
-        """Process a complete video through the pipeline with intelligent frame-transcript mixing"""
+    async def process_video(self, video_path: str, video_id: str) -> Dict[str, Any]:
+        """Process a complete video through the pipeline with intelligent frame-transcript mixing (ASYNC)"""
         logger.info(f"=== Processing Video: {video_path} ===")
         
         # Initialize components if not already done
@@ -327,12 +327,18 @@ class VideoAnalyticsSystem:
             logger.warning(f"Could not get video duration: {str(e)}")
             video_duration = 0
         
-        # Step 1: Audio Pipeline
-        logger.info("[1/3] Audio Pipeline")
-        audio_path = self.audio_pipeline.extract_audio(video_path_obj)
-        transcription = self.audio_pipeline.transcribe_audio(audio_path)
-        audio_events = self.audio_pipeline.create_audio_events(transcription)
-        audio_embeddings = self.audio_pipeline.generate_embeddings(audio_events)
+       # Step 1: Extract Audio and Video in PARALLEL (ASYNC)
+        logger.info("[1/3] Parallel Audio & Video Extraction")
+        
+        # Run audio and video extraction concurrently
+        audio_task = asyncio.create_task(self._extract_audio_async(video_path_obj))
+        video_task = asyncio.create_task(self._extract_video_async(video_path_obj, video_id))
+        
+        # Wait for both extractions to complete
+        audio_results, video_results = await asyncio.gather(audio_task, video_task)
+        
+        audio_path, transcription, audio_events, audio_embeddings = audio_results
+        frames, frame_events, frame_embeddings = video_results
         
         # Add audio embeddings to vector store
         audio_metadata = [event.to_dict() for event in audio_events]
@@ -341,22 +347,19 @@ class VideoAnalyticsSystem:
         logger.info(f"Audio events: {len(audio_events)}")
         logger.info(f"Audio embeddings shape: {audio_embeddings.shape}")
         
-        # Step 2: Video Pipeline (Frame Extraction)
-        logger.info("[2/3] Video Pipeline - Frame Extraction")
-        frames = self.video_pipeline.extract_frames(video_path_obj, video_id, save_frames=True)
-        frame_events = self.video_pipeline.create_frame_events(frames, video_id)
-        frame_embeddings = self.video_pipeline.generate_embeddings(frames)
         
         logger.info(f"Frame events: {len(frame_events)}")
         logger.info(f"Frame embeddings shape: {frame_embeddings.shape}")
         
-        # Step 3: Intelligent Frame-Transcript Mixing (NEW!)
-        logger.info("[3/3] Intelligent Frame-Transcript Mixing")
+        # Step 2: Intelligent Frame-Transcript Mixing (NEW!)
+        logger.info("[2/3] Intelligent Frame-Transcript Mixing")
         
         # Match frames to transcript segments based on timestamps
         enhanced_frame_events = self._create_intelligent_frame_descriptions(
             frames, frame_events, audio_events
         )
+        # Step 3: Build Timeline and Store Results
+        logger.info("[3/3] Building Timeline & Storing Results")
         
         # Initialize timeline with proper duration
         self.timeline = MasterTimeline(video_id=video_id, duration_seconds=video_duration, metadata={})
@@ -383,7 +386,29 @@ class VideoAnalyticsSystem:
             "frame_embeddings_shape": frame_embeddings.shape,
             "visual_segments_created": len(enhanced_frame_events)
         }
-
+    async def _extract_audio_async(self, video_path_obj: Path) -> tuple:
+        """Extract audio asynchronously using thread pool for parallel processing"""
+        logger.info("[AUDIO] Starting async audio extraction...")
+        
+        # Run sync audio extraction in thread pool
+        audio_path = await asyncio.to_thread(self.audio_pipeline.extract_audio, video_path_obj)
+        transcription = await asyncio.to_thread(self.audio_pipeline.transcribe_audio, audio_path)
+        audio_events = await asyncio.to_thread(self.audio_pipeline.create_audio_events, transcription)
+        audio_embeddings = await asyncio.to_thread(self.audio_pipeline.generate_embeddings, audio_events)
+        
+        logger.info(f"[AUDIO] Completed - {len(audio_events)} events, embeddings shape: {audio_embeddings.shape}")
+        return audio_path, transcription, audio_events, audio_embeddings
+    async def _extract_video_async(self, video_path_obj: Path, video_id: str) -> tuple:
+        """Extract video frames asynchronously using thread pool for parallel processing"""
+        logger.info("[VIDEO] Starting async video extraction...")
+        
+        # Run sync video extraction in thread pool
+        frames = await asyncio.to_thread(self.video_pipeline.extract_frames, video_path_obj, video_id, True)
+        frame_events = await asyncio.to_thread(self.video_pipeline.create_frame_events, frames, video_id)
+        frame_embeddings = await asyncio.to_thread(self.video_pipeline.generate_embeddings, frames)
+        
+        logger.info(f"[VIDEO] Completed - {len(frame_events)} events, embeddings shape: {frame_embeddings.shape}")
+        return frames, frame_events, frame_embeddings
     def _create_intelligent_frame_descriptions(self, frames: List[Tuple], frame_events: List[FrameEvent], 
                                             audio_events: List[AudioEvent]) -> List[FrameEvent]:
         """Create intelligent frame descriptions by matching with transcript segments"""
@@ -719,7 +744,7 @@ class VideoAnalyticsSystem:
             
             # Call the Gemini API
             try:
-                model = genai.GenerativeModel('gemini-2.5-flash-lite')
+                model = genai.GenerativeModel('gemini-2.5-flash')
                 response = model.generate_content(model_input)
                 return response.text.strip()
             except Exception as e:
@@ -914,7 +939,7 @@ Based on these key moments, please create a detailed summary that includes:
 Make the summary engaging and informative for someone who hasn't watched the video. Include specific timestamps when mentioning important moments."""
 
             # Call Gemini API for full summary
-            model = genai.GenerativeModel('gemini-2.5-flash-lite')
+            model = genai.GenerativeModel('gemini-2.5-flash')
             response = model.generate_content(prompt)
             full_summary = response.text
             return {
@@ -1212,7 +1237,7 @@ async def summarize_video_endpoint(request: VideoRequest):
                 
                 # Process existing video file
                 logger.info(" Processing existing video file through pipeline...")
-                results = video_system.process_video(video_path, video_id)
+                results = await video_system.process_video(video_path, video_id)
                 
                 logger.info(f" Video processing completed!")
                 
@@ -1279,7 +1304,7 @@ async def summarize_video_endpoint(request: VideoRequest):
             video_duration = 0
         
         # Process video through full pipeline
-        results = video_system.process_video(video_path, video_id)
+        results = await video_system.process_video(video_path, video_id)
         logger.info(f" Video processing completed!")
         
         # Generate summary from processed data
@@ -1302,12 +1327,7 @@ async def summarize_video_endpoint(request: VideoRequest):
         
         # Clean up: Delete downloaded video file and temporary audio to save space
         # Keep vector store and summary cache intact
-        try:
-            # Delete main video file
-            if os.path.exists(video_path):
-                os.remove(video_path)
-                logger.info(f" Cleaned up: Deleted downloaded video file {video_path}")
-            
+        try:    
             # Delete temporary audio file (if exists)
             temp_audio_path = os.path.join(WORK_DIR, f"{video_id}.wav")
             if os.path.exists(temp_audio_path):
@@ -1486,7 +1506,7 @@ async def download_video_async(url: str, platform: str, output_path: str) -> boo
                 stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=180)
                 
                 if process.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 1024:
-                    logger.info(f"✓ FFmpeg download successful: {output_path}")
+                    logger.info(f"FFmpeg download successful: {output_path}")
                     return True
                 else:
                     logger.warning(f"FFmpeg failed: {stderr.decode()[:200]}")
